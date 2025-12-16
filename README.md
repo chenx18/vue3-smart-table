@@ -1,4 +1,4 @@
-# vue3-SmartTable v0.0.1 使用文档
+# SmartTable v0.0.1 使用文档
 
 ## 概览
 
@@ -55,10 +55,7 @@ export interface ColumnConfig<R = any> {
 
   visible?: boolean
   inControl?: boolean
-
   render?: string
-  editable?: boolean
-  editType?: 'input' | 'number' | 'select'
 
   renderProps?: Record<string, any>
   columnProps?: Record<string, any>
@@ -119,8 +116,12 @@ export interface ButtonConfig<R = any> {
 | `dict` | 字典映射 |
 | `map` | key-value 映射 |
 | `formatter` | 自定义格式化 |
-| `editable` | 可编辑单元格（input / number / select） |
 | `icon` | iconfont / svg / url |
+| `input` | 可编辑单元格 |
+| `input-number` | 可编辑单元格 |
+| `select` | 可编辑单元格 |
+| `button` | 单行按钮 |
+| `link` | 单行链接 |
 
 ### copy 示例
 
@@ -208,23 +209,21 @@ const Enables = [
 ```
 - 使用自定义函数格式化显示内容
 
-### editable 渲染器
+### 编辑型 渲染器
 
 ```ts
 {
   key: 'age',
   label: '年龄',
-  render: 'editable',
-  editable: true,
-  editType: 'number',
+  render: 'input-number',
   renderProps: { min: 0, max: 120 }
 }
 ```
 - 支持类型：input / number / select
 - 支持事件：
-  - cellChange(row, key) 值变化
-  - cellBlur(row, key) 失去焦点
-  - cellEnter(row, key) 回车事件（input）
+  - cellChange(row, col) 值变化
+  - cellBlur(row, col) 失去焦点
+  - cellEnter(row, col) 回车事件（input）
 ### icon 示例
 ```ts
 {
@@ -237,7 +236,21 @@ const Enables = [
 - 支持网络图片 URL
 - 支持 svg 字符串
 - 支持 iconfont class
+
+### button / link
+```ts
+{ key: 'action', label: '操作', render: 'button', renderProps: { label: '编辑', type: 'text' } }
+{ key: 'url', label: '查看', render: 'link', renderProps: { label: '详情', href: 'https://example.com', blank: true } }
+
+```
+- 支持事件：
+  - cellClick(row, col) 点击事件
+
+
 ## 5. useTableColumns（列显隐缓存）
+```ts
+const { columns } = useTableColumns(defaultColumns, { pageKey: 'user-list', userId: currentUserId })
+```
 
 ### 设计原则
 
@@ -257,22 +270,38 @@ const { columns } = useTableColumns(defaultColumns, {
 - 不传则不启用缓存
 
 ---
+## 6. 事件
+- 支持类型：input / number / select 
+- 支持事件：
+  - cellChange(row, col) 值变化
+  - cellBlur(row, col) 失去焦点
+  - cellEnter(row, col) 回车事件（input）
+  - cellClick(row, col) 点击事件
 
-## 6. 使用示例
+
+## 7. 使用示例
 
 ```vue
+import { SmartTable } from "vue3-smart-table"
+
 <SmartTable
-  :data="tableData"
+  class-name="table-flex" 
+  :border="true" 
+  :loading="loading"
+  :pageKey="route.name"
+  :rowKey="'appId'"
+  :data="tabList"
   v-model:columns="columns"
-  :permissions="userPermissions"
-  :user-id="userId"
-  page-key="user-list"
+  :userId="userInfo?.userId"
+  :permissions="userStore.permissions"
   @cellChange="onCellChange"
-/>
+  @cellBlur="onCellBlur"
+  @cellEnter="onCellEnter"
+  @cellClick="onCellClick" >
+</SmartTable>
 ```
 
-## 7. 设计边界说明
-
+## 8. 设计边界说明
 - SmartTable **不关心权限系统如何实现**
 - permission 只是 string 比对
 - renderer 只负责 UI，不处理权限
