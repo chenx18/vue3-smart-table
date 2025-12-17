@@ -43,12 +43,15 @@ export interface RendererPropsMap {
   }>
 
   copy: WithRestProps<{
+    style?: string
+    class?: string
     successText?: string
     errorText?: string
   }>
 
   img: WithRestProps<{
     style?: string
+    class?: string
     fit?: 'contain' | 'cover' | 'fill'
     previewSrcList?: string[]
   }>
@@ -72,6 +75,7 @@ export interface RendererPropsMap {
   icon: WithRestProps<{
     style?: string
     size?: number
+    class?: string
   }>
 
   input: WithRestProps<{
@@ -88,6 +92,8 @@ export interface RendererPropsMap {
   }>
 
   select: WithRestProps<{
+    style?: string
+    class?: string
     placeholder?: string
     size?: 'small' | 'default' | 'large'
     clearable?: boolean
@@ -98,10 +104,14 @@ export interface RendererPropsMap {
   }>
 
   button: WithRestProps<ButtonProps & {
+    style?: string
+    class?: string
     label?: string   // 用于渲染文本
   }>
 
   link: WithRestProps<any & {
+    style?: string
+    class?: string
     label: string
     href: string
     blank?: boolean

@@ -1,9 +1,16 @@
 <template>
     <div class="demo-container" style="padding: 20px;">
-      <h2>vue3-smart-table Demo</h2>
+      <h2>Demo</h2>
       <SmartTable
+        class="h-400px"
+        class-name="table-flex" 
+        :border="true" 
+        :loading="loading"
+        :pageKey="'route.name'"
+        :rowKey="'id'"
         :data="tableData"
         v-model:columns="columns"
+        :userId="'userId'"
         :permissions="permissions"
         @cell-blur="onCellBlur"
         @cell-enter="onCellEnter"
@@ -15,19 +22,20 @@
   
   <script setup lang="ts" name="APP">
   import { reactive, ref } from 'vue'
-  import SmartTable from '../src/index'
-  import type { ColumnConfig } from '../src/components/SmartTable/types'
+  import { SmartTable } from '../src/index'
   const Enables = [
-        { label: '启用', value: 1, listClass: 'primary' },
-        { label: '禁用', value: 0, listClass: 'warning' }
+    { label: '启用', value: 1, listClass: 'primary' },
+    { label: '禁用', value: 0, listClass: 'warning' }
   ]
-  const buttonConfigs: any = [
-    { permission: '', label: '编辑', type: 'primary', action: (row: any) => console.log(row)},
-    { permission: '', label:'删除', type: 'danger', action: (row: any) => console.log(row)},
-    { permission: '', label: '复制', type: 'success', action: (row: any) => console.log(row)},
+  const buttonConfigs = [
+    { permission: 'edit', label: '编辑', type: 'primary', action: (row: any) => console.log(row)},
+    { permission: 'view', label:'删除', type: 'danger', action: (row: any) => console.log(row)},
+    { permission: 'copy', label: '复制', type: 'success', action: (row: any) => console.log(row)},
   ]
+  const permissions = ['edit', 'view']
+  const loading = ref(false)
   // 示例列配置 
-  const columns = ref<ColumnConfig[]>([
+  const columns = ref([
     { 
       type: 'selection',
       key: 'index', 
@@ -90,10 +98,27 @@
       render: 'input-number',
       columnProps: { minWidth: 150, sortable: true} 
     },
-    { 
-      key: 'id', 
-      label: 'ID', 
-      visible: true 
+    {
+      key: 'avatar',
+      label: '头像',
+      render: 'img',
+      columnProps: { minWidth: 150, sortable: true},
+      renderProps: {
+        width: '60px',
+        height: '60px',
+        fit: 'cover',
+        placeholder: '--'
+      }
+    },
+    {
+      key: 'gallery',
+      label: '相册',
+      render: 'img',
+      columnProps: { minWidth: 150, sortable: true},
+      renderProps: {
+        width: '100px',
+        height: '100px'
+      }
     },
     { 
       key: 'name', 
@@ -107,13 +132,6 @@
       visible: true, 
       render: "copy",
       columnProps: { minWidth: 160, sortable: true}
-    },
-    { 
-      key: "logoUrl", 
-      label: "图片", 
-      visible: true, 
-      render: 'img',
-      columnProps: { minWidth: 150}
     },
     { 
       key: "status", 
@@ -142,15 +160,18 @@
     },
   ])
 
-  // 示例表格数据 id name code logoUrl status  map regionCode orderNum
-  const defImgUrl = 'https://iconfont.alicdn.com/p/illus_3d/file/UMAqlm6KX5gw/8e357f00-9a4e-44c4-b0c5-bbed255cff24.png'
   const tableData = reactive([
-    { id: 1, name: 'Alice', code: '9527', logoUrl: defImgUrl, status: 1, map: 1, regionCode:'海外', orderNum: 1, selectId: 1 },
-    { id: 2, name: 'Bob', code: '9526', logoUrl: defImgUrl, status: 1, map: 1, regionCode:'海外', orderNum: 1, selectId: 1 },
-    { id: 3, name: 'Charlie', code: '9525', logoUrl: defImgUrl, status: 0, map: 1, regionCode:'海外', orderNum: 1, selectId: 2 },
+    { id: 1, name: 'Alice', code: '9527', status: 1, map: 1, regionCode:'海外', orderNum: 1, selectId: 1 },
+    { id: 2, name: 'Bob', code: '9526', status: 1, map: 1, regionCode:'海外', orderNum: 1, selectId: 1 },
+    { id: 3, name: 'Charlie', code: '9525', status: 0, map: 1, regionCode:'海外', orderNum: 1, selectId: 2 },
+    { id: 3, name: 'Charlie', code: '9525', status: 0, map: 1, regionCode:'海外', orderNum: 1, selectId: 2, 
+      avatar: 'https://iconfont.alicdn.com/p/illus_3d/file/UMAqlm6KX5gw/8e357f00-9a4e-44c4-b0c5-bbed255cff24.png' ,
+      gallery: [
+        'https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png',
+        'https://iconfont.alicdn.com/p/illus_3d/file/UMAqlm6KX5gw/8e357f00-9a4e-44c4-b0c5-bbed255cff24.png',
+      ],
+    },
   ])
-
-  const permissions = ['edit', 'view']
 
   // 编辑单元格回调
   const onCellBlur = (row: any, col: any) => {

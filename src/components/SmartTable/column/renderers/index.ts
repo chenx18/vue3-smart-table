@@ -132,16 +132,72 @@ export function createRenderer() {
       )
     },
 
-    img: (props: RendererProps) =>{
-      const val = props.row[props.col.key] ?? ''
-      const rp = props.col?.renderProps || {};
-      return h(ElImage, {
-        src: val,
-        previewSrcList: rp?.previewSrcList ?? (Array.isArray(val) ? val : [val]),
-        fit: 'contain',
-        style: 'width:80px;height:80px',
-        ...rp
-      })
+    img: (props: RendererProps) => {
+      const val = props.row[props.col.key]
+      const rp = props.col?.renderProps || {}
+      
+      const getImageList = () => {
+        if (!val) return [] // 空值返回空数组
+        if (Array.isArray(val)) {
+          return val.filter(item => item && typeof item === 'string')
+        }
+        return [val]
+      }
+      
+      const imageList = getImageList()
+
+      // 如果没有图片，显示空内容或占位符
+      if (imageList.length === 0) {
+        return rp.placeholder || ''
+      }
+      
+      // 配置默认样式
+      const defaultStyle = {
+        width: rp.width || '80px',
+        height: rp.height || '80px',
+        marginRight: imageList.length > 1 ? '4px' : '0',
+        ...(rp.style || {})
+      }
+      
+      // 如果只有一张图片
+      if (imageList.length === 1) {
+        return h(ElImage, {
+          src: imageList[0],
+          previewSrcList: rp.previewSrcList || imageList,
+          fit: rp.fit || 'contain',
+          style: defaultStyle,
+          ...rp
+        })
+      }
+      console.log(rp.previewSrcList)
+      // 多张图片，显示第一张，点击可预览所有
+      return h('div', {
+        style: 'display: flex; align-items: center; position: relative'
+      }, [
+        // 显示第一张图片，点击可预览所有
+        h(ElImage, {
+          src: imageList[0],
+          previewSrcList: rp.previewSrcList || imageList,
+          fit: rp.fit || 'contain',
+          style: defaultStyle,
+          ...rp
+        }),
+        // 如果图片数量大于1，显示剩余图片数量
+        imageList.length > 1 && h('span', {
+          style: `
+            margin-left: 8px;
+            font-size: 12px;
+            color: #666;
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 2px;
+            position: absolute;
+            top: 0;
+            right: 0;
+          `,
+          title: `共 ${imageList.length} 张图片`
+        }, `+${imageList.length - 1}`)
+      ])
     },
 
     dict: (props: RendererProps) => {

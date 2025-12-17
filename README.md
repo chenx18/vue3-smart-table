@@ -144,12 +144,39 @@ export interface ButtonConfig<R = any> {
   key: 'avatar',
   label: '头像',
   render: 'img',
-  renderProps: { style: 'width:50px;height:50px' }
-}
-
+  columnProps: { minWidth: 150},
+  renderProps: {
+    width: '60px',
+    height: '60px',
+    fit: 'cover',
+    placeholder: '--'
+  }
+},
+{
+  key: 'gallery',
+  label: '相册',
+  render: 'img',
+  columnProps: { minWidth: 150},
+  renderProps: {
+    width: '100px',
+    height: '100px'
+  }
+},
+const tableData = reactive([
+  { id: 3, name: 'Charlie', code: '9525', status: 0, map: 1, regionCode:'海外', orderNum: 1, selectId: 2, 
+    avatar: 'https://iconfont.alicdn.com/p/illus_3d/file/UMAqlm6KX5gw/8e357f00-9a4e-44c4-b0c5-bbed255cff24.png' ,
+    gallery: [
+      'https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png',
+      'https://iconfont.alicdn.com/p/illus_3d/file/UMAqlm6KX5gw/8e357f00-9a4e-44c4-b0c5-bbed255cff24.png',
+    ],
+  },
+])
 ```
-- 支持图片预览
-- 可传入 previewSrcList、fit、style 等 renderProps
+- 单张图片：正常显示并支持预览
+- 多张图片：显示第一张，右侧显示剩余数量（如：+2）
+- 支持 previewSrcList 自定义预览列表
+- 支持图片大小（width/height）、填充模式（fit）配置
+- 无图片时显示占位符或空内容
 
 ### map 示例
 
@@ -282,16 +309,27 @@ const { columns } = useTableColumns(defaultColumns, {
 ## 7. 使用示例
 
 ```vue
-import { SmartTable } from "vue3-smart-table"
+<!-- 全局注册 -->
+import { createApp } from 'vue'
+import App from './App.vue'
+import { SmartTable } from 'vue3-smart-table'
+
+const app = createApp(App)
+app.component('SmartTable', SmartTable)
+app.mount('#app')
+
+<!-- 或者局部注册 -->
+<script setup>
+import { SmartTable } from 'vue3-smart-table'
+</script>
 
 <SmartTable
-  class-name="table-flex" 
+  v-model:columns="columns"
   :border="true" 
   :loading="loading"
   :pageKey="route.name"
   :rowKey="'appId'"
   :data="tabList"
-  v-model:columns="columns"
   :userId="userInfo?.userId"
   :permissions="userStore.permissions"
   @cellChange="onCellChange"
@@ -300,12 +338,201 @@ import { SmartTable } from "vue3-smart-table"
   @cellClick="onCellClick" >
 </SmartTable>
 ```
+## 完整示例代码
+![DEMO](./demo/assets/dmeo.jpg)
+```vue
+<template>
+    <div class="demo-container" style="padding: 20px;">
+      <h2>Demo</h2>
+      <SmartTable
+        class="h-400px"
+        class-name="table-flex" 
+        :border="true" 
+        :loading="loading"
+        :pageKey="'route.name'"
+        :rowKey="'id'"
+        :data="tableData"
+        v-model:columns="columns"
+        :userId="'userId'"
+        :permissions="permissions"
+        @cell-blur="onCellBlur"
+        @cell-enter="onCellEnter"
+        @cell-change="onCellChange"
+        @cell-click="onCellClick"
+      />
+    </div>
+  </template>
+  
+  <script setup lang="ts" name="APP">
+  import { reactive, ref } from 'vue'
+  import { SmartTable } from 'vue3-smart-table'
+  const loading = ref(false)
+  const Enables = [
+    { label: '启用', value: 1, listClass: 'primary' },
+    { label: '禁用', value: 0, listClass: 'warning' }
+  ]
+  const buttonConfigs = [
+    { permission: 'edit', label: '编辑', type: 'primary', action: (row: any) => console.log(row)},
+    { permission: 'view', label:'删除', type: 'danger', action: (row: any) => console.log(row)},
+    { permission: 'copy', label: '复制', type: 'success', action: (row: any) => console.log(row)},
+  ]
+  const permissions = ['edit', 'view']
+  const columns = ref([
+    { 
+      type: 'selection',
+      key: 'index', 
+      inControl: false,
+    },
+    { 
+      type: 'index',
+      key: 'index', 
+      label: '序号', 
+      inControl: false,
+      columnProps: { width: 60}
+    },
+    {
+      type: 'operation',
+      key: 'opt',
+      label: '操作',
+      inControl: false,
+      buttons: buttonConfigs, 
+      columnProps: {
+        fixed: "right",
+        align: "left"
+      }
+    },
+    {
+      key: 'action',
+      label: '按钮',
+      render: 'button',
+      renderProps: {
+        label: '编辑',
+        type: 'text'
+      }
+    },
+    {
+      key: 'url',
+      label: 'li单元格',
+      render: 'link',
+      renderProps: {
+        label: '查看详情',
+        href: 'https://example.com',
+        blank: true
+      }
+    },
+    { 
+      key: "selectId", 
+      label: "可选单元格", 
+      visible: true,
+      render: 'select',
+      columnProps: { minWidth: 150},
+      renderProps:{
+        options: [
+          {label: '选中-1', value: 1},
+          {label: '选中-2', value: 2},
+        ]
+      }
+    },
+    { 
+      key: "orderNum", 
+      label: "输入单元格", 
+      visible: true,
+      render: 'input-number',
+      columnProps: { minWidth: 150, sortable: true} 
+    },
+    {
+      key: 'avatar',
+      label: '头像',
+      render: 'img',
+      columnProps: { minWidth: 150, sortable: true},
+      renderProps: {
+        width: '60px',
+        height: '60px',
+        fit: 'cover',
+        placeholder: '--'
+      }
+    },
+    {
+      key: 'gallery',
+      label: '相册',
+      render: 'img',
+      columnProps: { minWidth: 150, sortable: true},
+      renderProps: {
+        width: '100px',
+        height: '100px'
+      }
+    },
+    { 
+      key: 'name', 
+      label: 'Name', 
+      visible: true, 
+      render: 'html' 
+    },
+    { 
+      key: "code", 
+      label: "系统标识", 
+      visible: true, 
+      render: "copy",
+      columnProps: { minWidth: 160, sortable: true}
+    },
+    { 
+      key: "status", 
+      label: "状态", 
+      visible: true, 
+      render: "dict",
+      renderProps: {
+        options: Enables,
+      },
+      columnProps: { minWidth: 80, sortable: true}
+    },
+    { 
+      key: 'map', 
+      label: 'Map', 
+      visible: true, 
+      render: 'map', 
+      renderProps: { options: { 1: 'Active', 0: 'Inactive' } } 
+    },
+    { 
+      key: "regionCode", 
+      label: "区域", 
+      visible: true, 
+      render: "formatter",
+      columnProps: { minWidth: 100, sortable: true, align: 'left'},
+      formatter: (val: string) => `${val}-123`,
+    },
+  ])
 
-## 8. 设计边界说明
-- SmartTable **不关心权限系统如何实现**
-- permission 只是 string 比对
-- renderer 只负责 UI，不处理权限
-- 操作列是否显示由 SmartTable 统一决策
+  const tableData = reactive([
+    { id: 1, name: 'Alice', code: '9527', status: 1, map: 1, regionCode:'海外', orderNum: 1, selectId: 1 },
+    { id: 2, name: 'Bob', code: '9526', status: 1, map: 1, regionCode:'海外', orderNum: 1, selectId: 1 },
+    { id: 3, name: 'Charlie', code: '9525', status: 0, map: 1, regionCode:'海外', orderNum: 1, selectId: 2 },
+    { id: 3, name: 'Charlie', code: '9525', status: 0, map: 1, regionCode:'海外', orderNum: 1, selectId: 2, 
+      avatar: 'https://iconfont.alicdn.com/p/illus_3d/file/UMAqlm6KX5gw/8e357f00-9a4e-44c4-b0c5-bbed255cff24.png' ,
+      gallery: [
+        'https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png',
+        'https://iconfont.alicdn.com/p/illus_3d/file/UMAqlm6KX5gw/8e357f00-9a4e-44c4-b0c5-bbed255cff24.png',
+      ],
+    },
+  ])
+
+  // 编辑单元格回调
+  const onCellBlur = (row: any, col: any) => {
+    console.log('cell blur:', row, col)
+  }
+  const onCellEnter = (row: any, col: any) => {
+    console.log('cell enter:', row, col)
+  }
+  const onCellChange = (row: any, col: any) => {
+    console.log('cell Change:', row, col)
+  }
+  
+  const onCellClick = (row: any, col: any) => {
+    console.log('cell button click:', row, col)
+  }
+  </script>
+  
+```
+
 
 
 

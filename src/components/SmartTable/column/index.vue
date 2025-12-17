@@ -61,7 +61,11 @@
 
       <!-- fallback -->
       <template v-else>
-        {{ row[col.key!] }}
+        <div 
+          :style="col.renderProps?.style || ''"
+          :class="col.renderProps?.class || ''">
+          {{ row[col.key!] }}
+        </div>
       </template>
     </template>
   </el-table-column>
