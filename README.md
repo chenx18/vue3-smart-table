@@ -1,4 +1,4 @@
-# SmartTable v0.0.1 使用文档
+# SmartTable 使用文档
 
 ## 概览
 
