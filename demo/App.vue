@@ -158,6 +158,13 @@
       columnProps: { minWidth: 100, sortable: true, align: 'left'},
       formatter: (val: string) => `${val}-123`,
     },
+    { 
+      key: "remark", 
+      label: "备注", 
+      visible: true,
+      columnProps: { minWidth: 100 },
+      renderProps: { style: "overflow: hidden; white-space: nowrap; text-overflow: ellipsis;" }
+    },
   ])
 
   const tableData = reactive([
@@ -170,6 +177,7 @@
         'https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png',
         'https://iconfont.alicdn.com/p/illus_3d/file/UMAqlm6KX5gw/8e357f00-9a4e-44c4-b0c5-bbed255cff24.png',
       ],
+      remark: '备注有点长，可自定义style/class,格式字符串'
     },
   ])
 

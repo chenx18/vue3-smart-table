@@ -59,13 +59,14 @@
         :onClick="handleCellClick"
       />
 
-      <!-- fallback -->
+      <!-- default -->
       <template v-else>
-        <div 
+        <span
           :style="col.renderProps?.style || ''"
-          :class="col.renderProps?.class || ''">
+          :class="col.renderProps?.class || ''"
+          :title="row[col.key!]">
           {{ row[col.key!] }}
-        </div>
+        </span>
       </template>
     </template>
   </el-table-column>
