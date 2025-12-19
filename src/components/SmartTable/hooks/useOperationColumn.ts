@@ -18,7 +18,7 @@ export function useOperationColumn(
   userPermissions: string[] = []
 ) {
   /** 默认按钮宽度 */
-  const defaultWidth = 55
+  const defaultWidth = 60
 
   /** 超级权限标识 */
   const all_permission = '*:*:*'

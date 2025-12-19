@@ -34,7 +34,8 @@ export type RendererName =
   | 'select'
   | 'button'
   | 'link'
-
+  | 'slot'
+  
 /** renderer 对应的 renderProps */
 export interface RendererPropsMap {
   html: WithRestProps<{
@@ -133,7 +134,8 @@ export interface BaseColumn<R extends DefaultRow> {
   visible?: boolean
   inControl?: boolean
   columnProps?: Partial<TableColumnCtx<R>>
-  render?: RendererName
+  render?: RendererName   
+  slot?: string           // 插槽名称，默认用 key
   renderProps?: Partial<RendererPropsMap[keyof RendererPropsMap]>
   buttons?: ButtonConfig<R>[]   // operation 列专用
   maxbtn?: number               // operation 列专用

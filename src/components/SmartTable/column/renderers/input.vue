@@ -10,6 +10,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import type { ColumnConfig } from '../../types'
+import { getValueByPath, setValueByPath } from '@/utils/path'
 
 interface Props {
   readonly row: any
@@ -19,10 +20,10 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-const value = ref(props.row[props.col.key])
+const value = ref(getValueByPath(props.row, props.col.key))
 
 watch(value, (v) => {
-  props.row[props.col.key] = v
+  setValueByPath(props.row, props.col.key, v)
 })
 
 const onBlur = () => props.onCellBlur?.(props.row, props.col)

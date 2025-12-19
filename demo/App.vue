@@ -2,8 +2,6 @@
     <div class="demo-container" style="padding: 20px;">
       <h2>Demo</h2>
       <SmartTable
-        class="h-400px"
-        class-name="table-flex" 
         :border="true" 
         :loading="loading"
         :pageKey="'route.name'"
@@ -16,7 +14,20 @@
         @cell-enter="onCellEnter"
         @cell-change="onCellChange"
         @cell-click="onCellClick"
-      />
+      >
+      <!-- 自定义复杂列 -->
+      
+      <template #attachments="{ row }">
+        <div v-for="(item, index) in row.attachments" :key="index">
+          <el-image v-if="item.fileType === 1" :src="item.thumbnailUrl" 
+            :preview-src-list="row.imgPaths"/>
+          <el-button v-if="item.fileType === 0" type="text" >下载日志</el-button>
+          <div v-if="item.fileType === 2" >
+            <img :src="item.thumbnailUrl" alt="video"/>
+          </div>
+        </div>
+      </template>
+    </SmartTable>
     </div>
   </template>
   
@@ -32,7 +43,7 @@
     { permission: 'view', label:'删除', type: 'danger', action: (row: any) => console.log(row)},
     { permission: 'copy', label: '复制', type: 'success', action: (row: any) => console.log(row)},
   ]
-  const permissions = ['edit', 'view']
+  const permissions = ['edit', 'view8']
   const loading = ref(false)
   // 示例列配置 
   const columns = ref([
@@ -159,25 +170,73 @@
       formatter: (val: string) => `${val}-123`,
     },
     { 
+      key: "handling.feedbackId", 
+      label: "key.key取值", 
+      visible: true, 
+      columnProps: { minWidth: 120},
+    },
+    { 
       key: "remark", 
       label: "备注", 
       visible: true,
       columnProps: { minWidth: 100 },
       renderProps: { style: "overflow: hidden; white-space: nowrap; text-overflow: ellipsis;" }
     },
+    { 
+      key: "attachments", 
+      label: "自定义复杂列", 
+      visible: true,
+      render: 'slot',
+      slot: 'attachments',
+      columnProps: { minWidth: 120},
+    },
+    
   ])
 
   const tableData = reactive([
-    { id: 1, name: 'Alice', code: '9527', status: 1, map: 1, regionCode:'海外', orderNum: 1, selectId: 1 },
-    { id: 2, name: 'Bob', code: '9526', status: 1, map: 1, regionCode:'海外', orderNum: 1, selectId: 1 },
-    { id: 3, name: 'Charlie', code: '9525', status: 0, map: 1, regionCode:'海外', orderNum: 1, selectId: 2 },
-    { id: 3, name: 'Charlie', code: '9525', status: 0, map: 1, regionCode:'海外', orderNum: 1, selectId: 2, 
+    { id: 3, 
+      name: 'Charlie', 
+      code: '9525', 
+      status: 0,
+       map: 1, 
+       regionCode:'海外', 
+       orderNum: 1, 
+       selectId: 2, 
       avatar: 'https://iconfont.alicdn.com/p/illus_3d/file/UMAqlm6KX5gw/8e357f00-9a4e-44c4-b0c5-bbed255cff24.png' ,
       gallery: [
         'https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png',
         'https://iconfont.alicdn.com/p/illus_3d/file/UMAqlm6KX5gw/8e357f00-9a4e-44c4-b0c5-bbed255cff24.png',
       ],
-      remark: '备注有点长，可自定义style/class,格式字符串'
+      remark: '备注有点长，可自定义style/class,格式字符串',
+      attachments: [
+        {
+          "id": 1337611,
+          "feedbackId": 1334127,
+          "fileType": 1,
+          "fileUrl": "http://app-feedback.blackview4g.com:8004/attachment/cn.com.blackview.dashcam/2025/12/17/193000-1334127-1.jpg",
+          "fileSize": 298696,
+          "thumbnailUrl": "http://app-feedback.blackview4g.com:8004/attachment/cn.com.blackview.dashcam/2025/12/17/193000-1334127-1-thumbnail.jpg"
+        },
+        {
+          "id": 1337612,
+          "feedbackId": 1334127,
+          "fileType": 0,
+          "fileUrl": "http://app-feedback.blackview4g.com:8004/attachment/cn.com.blackview.dashcam/2025/12/17/193000-1334127-2.txt",
+          "fileSize": 1619,
+          "thumbnailUrl": null
+        }
+      ],
+      handling: {
+        "id": 1334076,
+        "feedbackId": 1334160,
+        "problemCategory": null,
+        "handlePerson": null,
+        "handleTime": "2025-12-19 09:51:05",
+        "handleRemark": null,
+        "handleStatus": 1,
+        "callbackStatus": 1,
+        "solveStatus": 1
+      }
     },
   ])
 

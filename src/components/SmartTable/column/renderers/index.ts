@@ -1,10 +1,11 @@
 import { defineComponent, h } from 'vue';
 import { ElButton, ElTag, ElImage, ElMessage } from 'element-plus'
+import { DefaultRow } from 'element-plus/es/components/table/src/table/defaults';
 import type { ColumnConfig, DataColumn } from '../../types'
 import EditableInput from './input.vue'
 import EditableNumber from './inputNumber.vue'
 import EditableSelect from './select.vue'
-import { DefaultRow } from 'element-plus/es/components/table/src/table/defaults';
+import { getValueByPath } from '@/utils/path'
 
 /** 统一 renderer props 类型 */
 export interface RendererProps {
@@ -40,15 +41,17 @@ export function createRenderer() {
 
     button: (props: RendererProps) => {
       const rp = props.col.renderProps || {}
+      const val = getValueByPath(props.row, props.col.key)
       return h(ElButton as any, {
         type: rp.type || 'primary',
         ...rp,
         onClick: () => props.onClick?.(props.row, props.col)
-      }, () => rp.label || props.row[props.col.key])
+      }, () => rp.label || val)
     },
     
     link: (props: RendererProps) => {
       const rp = props.col.renderProps || {}
+      const val = getValueByPath(props.row, props.col.key)
       return h('a', {
         href: rp.href || '#',
         target: rp.blank ? '_blank' : '_self',
@@ -57,19 +60,20 @@ export function createRenderer() {
           e.preventDefault()
           props.onClick?.(props.row, props.col)
         }
-      }, rp.label || props.row[props.col.key])
+      }, rp.label || val)
     },
 
     html: (props: RendererProps) =>{
+      const val = getValueByPath(props.row, props.col.key)
       return h('div', {
         class: 'line-clamp-2',
-        innerHTML: props.row[props.col.key] ?? '',
+        innerHTML: val ?? '',
         ...(props.col?.renderProps || {})
       })
     },
 
     copy: (props: RendererProps) => {
-      const val = props.row[props.col.key] ?? ''
+      const val = getValueByPath(props.row, props.col.key) ?? ''
       return h( 'div', {
           class: 'copy-wrapper',
           style: 'position: relative; display: inline-block;'
@@ -133,7 +137,7 @@ export function createRenderer() {
     },
 
     img: (props: RendererProps) => {
-      const val = props.row[props.col.key]
+      const val = getValueByPath(props.row, props.col.key) ?? ''
       const rp = props.col?.renderProps || {}
       
       const getImageList = () => {
@@ -201,7 +205,7 @@ export function createRenderer() {
     },
 
     dict: (props: RendererProps) => {
-      const val = props.row[props.col.key];
+      const val = getValueByPath(props.row, props.col.key) ?? ''
       const rp = props.col.renderProps || {};
       const options = rp.options ?? [];
       const showValue = rp.showValue ?? false;
@@ -230,22 +234,22 @@ export function createRenderer() {
     },
 
     map: (props: RendererProps) =>{
-      const val = props.row[props.col.key]
+      const val = getValueByPath(props.row, props.col.key) ?? ''
       const options = (props.col.renderProps?.options ?? {}) as Record<string, any>
       return val != null ? options[val] ?? '' : ''
     },
 
     formatter: (props: RendererProps) =>{
       const { col, row } = props
-      const value = row[col.key]
+      const val = getValueByPath(props.row, props.col.key) ?? ''
       if (isDataColumn(col)) {
-        return col.formatter?.(value, row)
+        return col.formatter?.(val, row)
       }
-      return value ?? ''
+      return val ?? ''
     },
 
     icon: (props: RendererProps) => {
-      const val = props.row[props.col.key] ?? '';
+      const val = getValueByPath(props.row, props.col.key) ?? ''
       const rp = props.col.renderProps || {};
       if (!val) return '';
       // 判断网络图片

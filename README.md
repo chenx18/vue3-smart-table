@@ -7,8 +7,9 @@
 - 配置驱动（columns 即 schema）
 - 权限解耦（不依赖 store / 登录体系）
 - 操作列智能显示（无可见按钮 → 整列隐藏）
-- 列显隐持久化（方案 A：只缓存 visible）
-- 单元格渲染器体系（renderer 插件化）
+- 列显隐持久化（只缓存 visible）
+- 单元格渲染器体系（renderer 插件化 + 插槽可自定义复杂列）
+- 保留 SFC 模板渲染 input / input-number / select
 
 ---
 
@@ -17,8 +18,12 @@
 ```txt
 SmartTable/
 ├─ column/
-│  ├─ index.vue            # TableColumn 子组件
-│  └─ renderer.ts          # renderer 注册中心
+│  ├─ renderer        
+│     ├─ index.ts           # createRenderer 工厂
+│     ├─ input.vue          # 可编辑 input
+│     ├─ inputNumber.vue    # 可编辑 input-number
+│     └─ select.vue         # 可编辑 select   
+│  └─ index.vue            # TableColumn 子组件
 ├─ hooks/
 │  ├─ useOperationColumn.ts # 操作列按钮可见性 / 宽度逻辑
 │  └─ useTableColumns.ts    # 列显隐缓存（只缓存 visible）
@@ -56,6 +61,7 @@ export interface ColumnConfig<R = any> {
   visible?: boolean
   inControl?: boolean
   render?: string
+  slot?: string   // render为slot时可自定slot否则使用key
 
   renderProps?: Record<string, any>
   columnProps?: Record<string, any>
@@ -75,6 +81,7 @@ export interface ColumnConfig<R = any> {
 - `selection / index / operation` 为 **核心列**
 - 核心列必须：`inControl = false`
 - 普通列通过 `visible` 控制显示 / 隐藏
+- 可通过 render 使用内置 renderer 或自定义插槽
 
 ---
 
@@ -122,7 +129,68 @@ export interface ButtonConfig<R = any> {
 | `select` | 可编辑单元格 |
 | `button` | 单行按钮 |
 | `link` | 单行链接 |
+| `slot` | 自定义插槽，插槽名称默认用 key |
 
+### 插槽自定义复杂列
+- 如果某一列过于复杂，可通过 #key 插槽完全自定义：
+- 自定义插槽 render="slot"，插槽名称默认用 key，配置slot="xx"可自定义slot名称
+```vue
+<script>
+  const columns = [{ 
+    key: "attachments", 
+    label: "自定义复杂列", 
+    visible: true,
+    render: 'slot',
+    slot: 'attachments',
+    columnProps: { minWidth: 100, align: 'right'},
+  }]
+</script>
+
+<template>
+  <SmartTable :columns="columns" :data="tableData">
+    <template #attachments="{ row }">
+      <div v-for="(item, index) in row.attachments" :key="index">
+        <el-image v-if="item.fileType === 1" :src="item.thumbnailUrl" :preview-src-list="row.imgPaths"/>
+        <el-button v-if="item.fileType === 0" type="text" @click="download(item.fileUrl)">下载日志</el-button>
+        <div v-if="item.fileType === 2" @click="handleVideo(item.fileUrl)">
+          <img :src="item.thumbnailUrl" alt="video"/>
+        </div>
+      </div>
+    </template>
+  </SmartTable>
+</template>
+```
+
+### 编辑型 渲染器
+- 支持类型：input / number / select
+- 支持事件：
+  - cellChange(row, col) 值变化
+  - cellBlur(row, col) 失去焦点
+  - cellEnter(row, col) 回车事件（input）
+```vue
+<script>
+  const columns = [
+    {
+      key: "selectId",
+      label: "可选单元格",
+      render: "select",
+      renderProps: { options: [{label:'选中-1', value:1}, {label:'选中-2', value:2}] }
+    },
+    {
+      key: "orderNum",
+      label: "输入单元格",
+      render: "input-number",
+      renderProps: { min: 0, max: 150 }
+    },
+    {
+      key: "username",
+      label: "姓名",
+      render: "input"
+    }
+  ]
+</script>
+
+```
 ### copy 示例
 
 ```ts
@@ -236,21 +304,7 @@ const Enables = [
 ```
 - 使用自定义函数格式化显示内容
 
-### 编辑型 渲染器
 
-```ts
-{
-  key: 'age',
-  label: '年龄',
-  render: 'input-number',
-  renderProps: { min: 0, max: 120 }
-}
-```
-- 支持类型：input / number / select
-- 支持事件：
-  - cellChange(row, col) 值变化
-  - cellBlur(row, col) 失去焦点
-  - cellEnter(row, col) 回车事件（input）
 ### icon 示例
 ```ts
 {
@@ -336,6 +390,16 @@ import { SmartTable } from 'vue3-smart-table'
   @cellBlur="onCellBlur"
   @cellEnter="onCellEnter"
   @cellClick="onCellClick" >
+  <!-- 自定义复杂列 -->
+  <template #attachments="{ row }">
+    <div v-for="(item, index) in row.attachments" :key="index">
+      <el-image v-if="item.fileType === 1" :src="item.thumbnailUrl" :preview-src-list="row.imgPaths"/>
+      <el-button v-if="item.fileType === 0" type="text" @click="download(item.fileUrl)">下载日志</el-button>
+      <div v-if="item.fileType === 2" @click="handleVideo(item.fileUrl)">
+        <img :src="item.thumbnailUrl" alt="video"/>
+      </div>
+    </div>
+  </template>
 </SmartTable>
 ```
 ## 完整示例代码
@@ -500,6 +564,18 @@ import { SmartTable } from 'vue3-smart-table'
       columnProps: { minWidth: 100, sortable: true, align: 'left'},
       formatter: (val: string) => `${val}-123`,
     },
+    { 
+      key: "regionCode", 
+      label: "自定义复杂列", 
+      visible: true, 
+      columnProps: { minWidth: 100, align: 'right'},
+    },
+    { 
+      key: "handling.feedbackId", 
+      label: "key.key取值", 
+      visible: true, 
+      columnProps: { minWidth: 100, align: 'right'},
+    },
   ])
 
   const tableData = reactive([
@@ -512,6 +588,35 @@ import { SmartTable } from 'vue3-smart-table'
         'https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png',
         'https://iconfont.alicdn.com/p/illus_3d/file/UMAqlm6KX5gw/8e357f00-9a4e-44c4-b0c5-bbed255cff24.png',
       ],
+      attachments: [
+        {
+          "id": 1337611,
+          "feedbackId": 1334127,
+          "fileType": 1,
+          "fileUrl": "http://xxxxxxxxxxxxxxxx/attachment/cn.com.blackview.dashcam/2025/12/17/193000-1334127-1.jpg",
+          "fileSize": 298696,
+          "thumbnailUrl": "http://xxxxxxxxxxxxxxxxxx/attachment/cn.com.blackview.dashcam/2025/12/17/193000-1334127-1-thumbnail.jpg"
+        },
+        {
+          "id": 1337612,
+          "feedbackId": 1334127,
+          "fileType": 0,
+          "fileUrl": "http://xxxxxxxxxxxxxxxxx/attachment/cn.com.blackview.dashcam/2025/12/17/193000-1334127-2.txt",
+          "fileSize": 1619,
+          "thumbnailUrl": null
+        }
+      ],
+      handling: {
+          "id": 1334076,
+          "feedbackId": 1334160,
+          "problemCategory": null,
+          "handlePerson": null,
+          "handleTime": "2025-12-19 09:51:05",
+          "handleRemark": null,
+          "handleStatus": 1,
+          "callbackStatus": 1,
+          "solveStatus": 1
+      }
     },
   ])
 

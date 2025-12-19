@@ -40,44 +40,48 @@
 
   <!-- ========== 普通列 / renderer / editable ========== -->
   <el-table-column
-   v-else-if="isDataOrOperationColumn(col)"
-    :prop="col.key"
+    v-else-if="isDataOrOperationColumn(col)"
     :label="col.label"
     align="center"
     v-bind="col.columnProps || {}"
-  >
-    <template #default="{ row }">
+    >
+    
+    <template #default="scope">
+      <!-- 父组件插槽优先 -->
+      <template v-if="col.render === 'slot' && $slots[col?.slot || col.key]">
+        <slot :name="col?.slot || col.key" v-bind="scope" />
+      </template>
+
       <!-- renderer -->
       <component
-        v-if="col.render && renderer[col.render]"
+        v-else-if="col.render && renderer[col.render]"
         :is="renderer[col.render]"
-        :row="row"
+        :row="scope.row"
         :col="col"
         :onCellChange="handleCellChange"
         :onCellBlur="handleCellBlur"
         :onCellEnter="handleCellEnter"
         :onClick="handleCellClick"
       />
-
-      <!-- default -->
-      <template v-else>
-        <span
-          :style="col.renderProps?.style || ''"
-          :class="col.renderProps?.class || ''"
-          :title="row[col.key!]">
-          {{ row[col.key!] }}
-        </span>
-      </template>
+      <!-- 默认文本 -->
+      <span v-else
+        :style="col.renderProps?.style || ''"
+        :class="col.renderProps?.class || ''"
+        :title="getValueByPath(scope.row, col.key)">
+        {{ getValueByPath(scope.row, col.key) }}
+      </span>
     </template>
   </el-table-column>
+  
 </template>
 
 <script setup lang="ts">
 import { computed, toRefs } from 'vue'
 import type { PropType } from 'vue'
-import type { ColumnConfig, DataColumn, OperationColumn } from '../types'
+import type { ColumnConfig, DataColumn, OperationColumn, RendererName } from '../types'
 import { createRenderer } from './renderers'
 import { useOperationColumn } from '../hooks/useOperationColumn'
+import { getValueByPath } from '@/utils/path'
 
 const props = defineProps({
   col: { type: Object as PropType<ColumnConfig>, required: true },
@@ -96,7 +100,8 @@ const handleCellEnter = (row: any, key: string) => emit('cellEnter', row, key)
 const handleCellClick = (row: any, col: any) => emit('cellClick', row, col)
 
 /** ========== renderer 注册 ========== */
-const renderer = createRenderer()
+const renderer = createRenderer() as Record<RendererName, any>
+
 
 /** ========== operation 列逻辑 ========== */
 const {

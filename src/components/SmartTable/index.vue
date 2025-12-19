@@ -4,8 +4,7 @@
     :data="data"
     :row-key="rowKey"
     class="smart-table"
-    v-loading="loading"
-    >
+    v-loading="loading">
     <TableColumn 
       v-for="col in cachedColumns" 
       :key="col.key" 
@@ -14,8 +13,11 @@
       @cell-change="handleCellChange"
       @cell-blur="handleCellBlur"
       @cell-enter="handleCellEnter"
-      @cell-click="handleCellClick"
-    />
+      @cell-click="handleCellClick">
+      <template v-for="col in cachedColumns" #[col.key]="slotProps">
+        <slot :name="col.key" v-bind="slotProps" />
+      </template>
+    </TableColumn>
   </el-table>
 </template>
 

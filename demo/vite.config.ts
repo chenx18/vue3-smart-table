@@ -8,8 +8,8 @@ export default defineConfig({
   base: './',
   resolve: {
     alias: {
-      '@': resolve(__dirname),
-      'vue3-smart-table': resolve(__dirname, '../src')
+      '@': resolve(__dirname, '../src'), // demo 内部路径
+      'vue3-smart-table': resolve(__dirname, '../vue3-smart-table/src') 
     }
   },
   server: {
