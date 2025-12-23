@@ -13,7 +13,11 @@
     :label="col.label || '#'"
     align="center"
     v-bind="col.columnProps"
-  />
+  >
+    <template #default="{ $index }">
+      {{ computeIndex($index) }}
+    </template>
+  </el-table-column>
 
   <!-- ========== operation 列 ========== -->
   <el-table-column
@@ -85,10 +89,17 @@ import { getValueByPath } from '@/utils/path'
 
 const props = defineProps({
   col: { type: Object as PropType<ColumnConfig>, required: true },
-  permissions: { type: Array as PropType<string[]>, default: () => [] }
+  permissions: { type: Array as PropType<string[]>, default: () => [] },
+  pagination: { type: Object, default: () => ({}) },
 })
 
 const emit = defineEmits(['cellBlur', 'cellEnter', 'cellChange', 'cellClick'])
+
+const computeIndex = (index: number) => {
+  const page = props.pagination?.page
+  const size = props.pagination?.size
+  return page && size ? (page - 1) * size + index + 1 : index + 1
+}
 
 /** 解构 col 响应式引用 */
 const { col } = toRefs(props)

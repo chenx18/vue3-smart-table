@@ -45,6 +45,7 @@ SmartTable/
 | permissions | `string[]` | `[]` | 当前用户权限列表 |
 | pageKey | `string` | - | 列缓存 pageKey（可选） |
 | userId | `string \| number` | - | 列缓存 userId（可选） |
+| pagination | `{page: number, size: number}` | - | 序号列计算序号（可选），page:当前页，size:当前页显示条数，不填则默认序号 |
 
 > 其余属性将 **透传给 el-table**。
 

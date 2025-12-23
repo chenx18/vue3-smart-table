@@ -10,6 +10,7 @@
       :key="col.key" 
       :col="col" 
       :permissions="permissions"
+      :pagination="pagination"
       @cell-change="handleCellChange"
       @cell-blur="handleCellBlur"
       @cell-enter="handleCellEnter"
@@ -41,9 +42,11 @@
     userId:{  /** 当前用户标识（可选，用于列缓存） */
       type: [String , Number], 
       default: ''
-    } 
-  })
+    },
+    pagination: { type: Object, default: () => ({}) },
 
+  })
+  
   const emit = defineEmits([
     'update:columns',
     'cellChange',

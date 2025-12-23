@@ -1,6 +1,6 @@
 {
   "name": "vue3-smart-table",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "基于 Vue 3 + Element Plus 的高可复用表格组件",
   "main": "dist/vue3-smart-table.cjs.js",
   "module": "dist/vue3-smart-table.es.js",
