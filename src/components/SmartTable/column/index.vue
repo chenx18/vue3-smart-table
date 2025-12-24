@@ -82,7 +82,7 @@
 <script setup lang="ts">
 import { computed, toRefs } from 'vue'
 import type { PropType } from 'vue'
-import type { ColumnConfig, DataColumn, OperationColumn, RendererName } from '../types'
+import type { ColumnConfig, RendererName } from '../types'
 import { createRenderer } from './renderers'
 import { useOperationColumn } from '../hooks/useOperationColumn'
 import { getValueByPath } from '@/utils/path'
@@ -131,12 +131,9 @@ const {
 const showOperationColumn = computed(() => {
   const buttons = col.value.buttons || []
   if (!buttons.length) return false  // 没有配置按钮直接隐藏
-
   const rows = col.value.__rows || []
-  
   // 无行数据时，至少有一个按钮有权限就显示
   if (!rows.length) return hasAnyButton.value
-  
   // 有行数据时，至少一行有可见按钮才显示
   return hasAnyVisibleButton(col.value.__rows || [])
 })

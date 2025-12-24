@@ -38,13 +38,12 @@ SmartTable/
 
 | 属性 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| data | `any[]` | `[]` | 表格数据 |
-| columns | `ColumnConfig[]` | `[]` | 列配置（支持 v-model:columns） |
-| rowKey | `string` | `'id'` | 行唯一 key |
-| loading | `boolean` | `false` | loading 状态 |
-| permissions | `string[]` | `[]` | 当前用户权限列表 |
-| pageKey | `string` | - | 列缓存 pageKey（可选） |
-| userId | `string \| number` | - | 列缓存 userId（可选） |
+| data | `any[]` | `[]` | 必需 - 表格数据 |
+| columns | `ColumnConfig[]` | `[]` |必需 - 列配置数组，支持 v-model:columns 双向绑定|
+| rowKey | `string` | `'id'` | 行数据的唯一标识字段 |
+| loading | `boolean` | `false` | 加载状态，显示加载动画 |
+| permissions | `string[]` | `[]` | 当前用户权限列表，用于操作列权限控制 |
+| cacheKey | `string` | - | **列缓存键（推荐）**，如果提供则直接使用，格式：`table_columns_{userId}_{pageKey}` 或自定义 |
 | pagination | `{page: number, size: number}` | - | 序号列计算序号（可选），page:当前页，size:当前页显示条数，不填则默认序号 |
 
 > 其余属性将 **透传给 el-table**。
@@ -382,11 +381,10 @@ import { SmartTable } from 'vue3-smart-table'
   v-model:columns="columns"
   :border="true" 
   :loading="loading"
-  :pageKey="route.name"
   :rowKey="'appId'"
   :data="tabList"
-  :userId="userInfo?.userId"
   :permissions="userStore.permissions"
+  :cacheKey="`table_columns_${userInfo?.userId}_APPFeedback`"
   @cellChange="onCellChange"
   @cellBlur="onCellBlur"
   @cellEnter="onCellEnter"
@@ -414,12 +412,11 @@ import { SmartTable } from 'vue3-smart-table'
         class-name="table-flex" 
         :border="true" 
         :loading="loading"
-        :pageKey="'route.name'"
         :rowKey="'id'"
         :data="tableData"
         v-model:columns="columns"
-        :userId="'userId'"
         :permissions="permissions"
+        :cacheKey="`table_columns_${userInfo?.userId}_APPFeedback`"
         @cell-blur="onCellBlur"
         @cell-enter="onCellEnter"
         @cell-change="onCellChange"

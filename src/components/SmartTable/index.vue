@@ -28,21 +28,16 @@
   import type { BaseColumn, ColumnConfig } from './types'
   import { useTableColumns } from "./hooks/useTableColumns"
 
-  // 未在 props 中传递的参数可通过 $attrs 自动透传，注意$attrs不要透传与el-table无关的参数
   const props = defineProps({
     data: { type: Array, default: () => [] },
-    columns: { type: Array, default: () => [] }, // v-model:columns
-    pageKey: String,
+    columns: { type: Array, default: () => [] },
     rowKey: { type: String, default: 'id' },
     loading: { type: Boolean, default: false },
     permissions: {
       type: Array as PropType<string[]>,
       default: () => []
     },
-    userId:{  /** 当前用户标识（可选，用于列缓存） */
-      type: [String , Number], 
-      default: ''
-    },
+    cacheKey: String,
     pagination: { type: Object, default: () => ({}) },
 
   })
@@ -57,8 +52,7 @@
 
   // ------------------ columns 处理 ------------------
   const { columns: cachedColumns } = useTableColumns(props.columns, {
-    pageKey: props.pageKey ?? '',
-    userId: props.userId ?? ''
+    cacheKey: props.cacheKey ?? '',
   })
   watch(
     cachedColumns,
@@ -75,6 +69,7 @@
     console.log('enter')
     emit('cellEnter', row, key)
   }
+  
   // SmartTable
   const handleCellClick = (row: any, col: any) => {
     if(!col) return

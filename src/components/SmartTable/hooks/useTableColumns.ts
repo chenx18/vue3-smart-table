@@ -1,18 +1,5 @@
 import { ref, watch } from 'vue'
 
-/**
- * localStorage key 前缀
- * 在组件库中统一命名，避免冲突
- */
-const PREFIX = 'table_columns_'
-
-/**
- * 生成缓存 key
- * 规则：table_columns_{userId}_{pageKey}
- */
-function getCacheKey(userId: string | number, pageKey: string) {
-  return `${PREFIX}${userId}_${pageKey}`
-}
 
 /**
  * 合并默认列配置和缓存配置
@@ -63,43 +50,22 @@ function mergeColumns(
 export function useTableColumns(
   defaultColumns: any[],
   options?: {
-    /** 页面唯一标识 */
-    pageKey?: string
-
-    /** 当前用户标识，不传则不做用户级缓存 */
-    userId?: string | number
-
+    /** 缓存唯一标识 */
+    cacheKey?: string
     /** 存储介质，默认 localStorage */
     storage?: Storage
   }
 ) {
 
   /** 解构参数并设置默认值 */
-  const {
-    pageKey,
-    userId,
-    storage = localStorage
-  } = options || {}
+  const { cacheKey, storage = localStorage } = options || {}
 
   /**
-   * 页面唯一标识
-   */
-  const realPageKey = pageKey || '';
-
-  /**
-   * 如果没有 userId，则不启用缓存
+   * 如果没有 cacheKey，则不启用缓存
    * （例如公共页面、未登录页面）
-   */
-  const cacheKey = userId
-    ? getCacheKey(userId, realPageKey)
-    : null
-
-  /**
    * 从缓存中读取列配置
    */
-  const cache = cacheKey
-    ? storage.getItem(cacheKey)
-    : null
+  const cache = cacheKey ? storage.getItem(cacheKey) : null
 
   /**
    * 响应式列配置
