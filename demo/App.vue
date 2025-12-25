@@ -1,258 +1,582 @@
 <template>
-    <div class="demo-container" style="padding: 20px;">
-      <h2>Demo</h2>
+  <div class="demo-container" style="padding: 20px;">
+    <h1>Vue3 Smart Table - 完整示例</h1>
+
+    <!-- 全局配置区域 -->
+    <el-card class="mb-4" header="全局配置">
+      <el-form inline>
+        <el-form-item label="主题色">
+          <el-color-picker v-model="themeColor" @change="updateTheme" />
+        </el-form-item>
+        <el-form-item label="显示自定义渲染器">
+          <el-switch v-model="showCustomRenderer" @change="toggleCustomRenderer" />
+        </el-form-item>
+      </el-form>
+    </el-card>
+
+    <!-- 表格区域 -->
+    <el-card header="表格示例（所有内置渲染器 + 自定义渲染器）">
       <SmartTable
-        :border="true" 
+        :border="true"
         :loading="loading"
-        :pageKey="'route.name'"
         :rowKey="'id'"
         :data="tableData"
         v-model:columns="columns"
-        :userId="'userId'"
+        :pagination="pagination"
         :permissions="permissions"
+        :cacheKey="'vue3-smart-table-demo'"
         @cell-blur="onCellBlur"
         @cell-enter="onCellEnter"
         @cell-change="onCellChange"
         @cell-click="onCellClick"
       >
-      <!-- 自定义复杂列 -->
-      
-      <template #attachments="{ row }">
-        <div v-for="(item, index) in row.attachments" :key="index">
-          <el-image v-if="item.fileType === 1" :src="item.thumbnailUrl" 
-            :preview-src-list="row.imgPaths"/>
-          <el-button v-if="item.fileType === 0" type="text" >下载日志</el-button>
-          <div v-if="item.fileType === 2" >
-            <img :src="item.thumbnailUrl" alt="video"/>
+        <!-- 自定义复杂列插槽 -->
+        <template #attachments="{ row }">
+          <div v-for="(item, index) in row.attachments" :key="index" class="attachment-item">
+            <el-image
+              v-if="item.fileType === 1"
+              :src="item.thumbnailUrl"
+              :preview-src-list="row.imgPaths"
+              fit="cover"
+              style="width: 60px; height: 60px; margin-right: 8px;"
+            />
+            <el-button v-if="item.fileType === 0" type="primary" link size="small">
+              <el-icon><Download /></el-icon> 下载日志
+            </el-button>
+            <div v-if="item.fileType === 2">
+              <img :src="item.thumbnailUrl" alt="video" style="width: 60px; height: 60px;" />
+            </div>
           </div>
+        </template>
+      </SmartTable>
+    </el-card>
+
+    <!-- 说明区域 -->
+    <el-card class="mt-4" header="功能说明">
+      <el-collapse>
+        <el-collapse-item title="1. 基础列类型" name="1">
+          <ul>
+            <li><strong>Selection</strong>: 多选列，使用 type: 'selection'</li>
+            <li><strong>Index</strong>: 序号列，支持分页计算，使用 type: 'index'</li>
+            <li><strong>Operation</strong>: 操作列，支持权限控制和行级可见性</li>
+          </ul>
+        </el-collapse-item>
+
+        <el-collapse-item title="2. 内置渲染器 (12+)" name="2">
+          <el-row :gutter="20">
+            <el-col :span="8" v-for="renderer in rendererList" :key="renderer.name">
+              <el-tag type="primary" class="mr-2">{{ renderer.name }}</el-tag>
+              <span>{{ renderer.desc }}</span>
+            </el-col>
+          </el-row>
+        </el-collapse-item>
+
+        <el-collapse-item title="3. 可编辑单元格" name="3">
+          <ul>
+            <li><strong>input</strong>: 文本输入框，支持 change/blur/enter 事件</li>
+            <li><strong>input-number</strong>: 数字输入框，支持 min/max 配置</li>
+            <li><strong>select</strong>: 下拉选择，支持 options 配置</li>
+          </ul>
+          <p class="text-gray-500">所有可编辑单元格支持 v-model，修改后触发 cellChange 事件</p>
+        </el-collapse-item>
+
+        <el-collapse-item title="4. 自定义渲染器" name="4">
+          <p>当前示例展示了一个名为 <code>status-badge</code> 的自定义渲染器：</p>
+          <pre class="bg-gray-100 p-2 rounded">
+import { createFunctionalRenderer, getRendererManager } from 'vue3-smart-table'
+
+const statusRenderer = createFunctionalRenderer((props) => {
+  const val = props.row[props.col.key]
+  return h('span', {
+    class: `status-badge status-${val}`,
+    style: { padding: '4px 8px', borderRadius: '4px' }
+  }, val === 1 ? '✅ 启用' : '❌ 禁用')
+})
+
+getRendererManager().register('status-badge', statusRenderer)
+          </pre>
+          <p>在列配置中使用：<code>{ render: 'status-badge' }</code></p>
+        </el-collapse-item>
+
+        <el-collapse-item title="5. 插槽自定义" name="5">
+          <p>对于复杂场景，可以使用插槽完全自定义列内容：</p>
+          <pre class="bg-gray-100 p-2 rounded">
+// 列配置
+{ key: 'attachments', render: 'slot', slot: 'attachments' }
+
+// 模板
+&lt;template #attachments="{ row }"&gt;
+  自定义内容
+&lt;/template&gt;
+          </pre>
+        </el-collapse-item>
+
+        <el-collapse-item title="6. 权限控制" name="6">
+          <p>操作列支持按钮级别的权限控制：</p>
+          <ul>
+            <li><code>permission</code>: 权限标识，支持 string 或 string[]</li>
+            <li><code>visible</code>: 行级可见性函数</li>
+            <li>当所有按钮都不可见时，整列自动隐藏</li>
+          </ul>
+        </el-collapse-item>
+
+        <el-collapse-item title="7. 列配置缓存" name="7">
+          <p>通过 <code>cacheKey</code> 启用列显隐配置的本地存储，刷新页面后保持用户设置。</p>
+          <p>只缓存 <code>visible</code> 字段，不影响其他配置。</p>
+        </el-collapse-item>
+      </el-collapse>
+    </el-card>
+
+    <!-- 事件日志 -->
+    <el-card class="mt-4" header="事件日志">
+      <el-button @click="clearLogs" size="small" type="danger" class="mb-2">清空日志</el-button>
+      <div class="log-container">
+        <div v-for="(log, index) in logs" :key="index" class="log-item">
+          <el-tag :type="log.type" size="small">{{ log.event }}</el-tag>
+          <span class="ml-2">{{ log.message }}</span>
         </div>
-      </template>
-    </SmartTable>
-    </div>
-  </template>
-  
-  <script setup lang="ts" name="APP">
-  import { reactive, ref } from 'vue'
-  import { SmartTable } from '../src/index'
-  const Enables = [
-    { label: '启用', value: 1, listClass: 'primary' },
-    { label: '禁用', value: 0, listClass: 'warning' }
-  ]
-  const buttonConfigs = [
-    { permission: 'edit', label: '编辑', type: 'primary', action: (row: any) => console.log(row)},
-    { permission: 'view', label:'删除', type: 'danger', action: (row: any) => console.log(row)},
-    { permission: 'copy', label: '复制', type: 'success', action: (row: any) => console.log(row)},
-  ]
-  const permissions = ['edit', 'view8']
-  const loading = ref(false)
-  // 示例列配置 
-  const columns = ref([
-    { 
-      type: 'selection',
-      key: 'index', 
-      inControl: false,
-    },
-    { 
-      type: 'index',
-      key: 'index', 
-      label: '序号', 
-      inControl: false,
-      columnProps: { width: 60}
-    },
-    {
-      type: 'operation',
-      key: 'opt',
-      label: '操作',
-      inControl: false,
-      buttons: buttonConfigs, 
-      columnProps: {
-        fixed: "right",
-        align: "left"
-      }
-    },
-    {
-      key: 'action',
-      label: '按钮',
-      render: 'button',
-      renderProps: {
-        label: '编辑',
-        type: 'text'
-      }
-    },
-    {
-      key: 'url',
-      label: 'li单元格',
-      render: 'link',
-      renderProps: {
-        label: '查看详情',
-        href: 'https://example.com',
-        blank: true
-      }
-    },
-    { 
-      key: "selectId", 
-      label: "可选单元格", 
-      visible: true,
-      render: 'select',
-      columnProps: { minWidth: 150},
-      renderProps:{
-        options: [
-          {label: '选中-1', value: 1},
-          {label: '选中-2', value: 2},
-        ]
-      }
-    },
-    { 
-      key: "orderNum", 
-      label: "输入单元格", 
-      visible: true,
-      render: 'input-number',
-      columnProps: { minWidth: 150, sortable: true} 
-    },
-    {
-      key: 'avatar',
-      label: '头像',
-      render: 'img',
-      columnProps: { minWidth: 150, sortable: true},
-      renderProps: {
-        width: '60px',
-        height: '60px',
-        fit: 'cover',
-        placeholder: '--'
-      }
-    },
-    {
-      key: 'gallery',
-      label: '相册',
-      render: 'img',
-      columnProps: { minWidth: 150, sortable: true},
-      renderProps: {
-        width: '100px',
-        height: '100px'
-      }
-    },
-    { 
-      key: 'name', 
-      label: 'Name', 
-      visible: true, 
-      render: 'html' 
-    },
-    { 
-      key: "code", 
-      label: "系统标识", 
-      visible: true, 
-      render: "copy",
-      columnProps: { minWidth: 160, sortable: true}
-    },
-    { 
-      key: "status", 
-      label: "状态", 
-      visible: true, 
-      render: "dict",
-      renderProps: {
-        options: Enables,
-      },
-      columnProps: { minWidth: 80, sortable: true}
-    },
-    { 
-      key: 'map', 
-      label: 'Map', 
-      visible: true, 
-      render: 'map', 
-      renderProps: { options: { 1: 'Active', 0: 'Inactive' } } 
-    },
-    { 
-      key: "regionCode", 
-      label: "区域", 
-      visible: true, 
-      render: "formatter",
-      columnProps: { minWidth: 100, sortable: true, align: 'left'},
-      formatter: (val: string) => `${val}-123`,
-    },
-    { 
-      key: "handling.feedbackId", 
-      label: "key.key取值", 
-      visible: true, 
-      columnProps: { minWidth: 120},
-    },
-    { 
-      key: "remark", 
-      label: "备注", 
-      visible: true,
-      columnProps: { minWidth: 100 },
-      renderProps: { style: "overflow: hidden; white-space: nowrap; text-overflow: ellipsis;" }
-    },
-    { 
-      key: "attachments", 
-      label: "自定义复杂列", 
-      visible: true,
-      render: 'slot',
-      slot: 'attachments',
-      columnProps: { minWidth: 120},
-    },
-    
-  ])
+      </div>
+    </el-card>
+  </div>
+</template>
 
-  const tableData = reactive([
-    { id: 3, 
-      name: 'Charlie', 
-      code: '9525', 
-      status: 0,
-       map: 1, 
-       regionCode:'海外', 
-       orderNum: 1, 
-       selectId: 2, 
-      avatar: 'https://iconfont.alicdn.com/p/illus_3d/file/UMAqlm6KX5gw/8e357f00-9a4e-44c4-b0c5-bbed255cff24.png' ,
-      gallery: [
-        'https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png',
-        'https://iconfont.alicdn.com/p/illus_3d/file/UMAqlm6KX5gw/8e357f00-9a4e-44c4-b0c5-bbed255cff24.png',
-      ],
-      remark: '备注有点长，可自定义style/class,格式字符串',
-      attachments: [
-        {
-          "id": 1337611,
-          "feedbackId": 1334127,
-          "fileType": 1,
-          "fileUrl": "http://app-feedback.blackview4g.com:8004/attachment/cn.com.blackview.dashcam/2025/12/17/193000-1334127-1.jpg",
-          "fileSize": 298696,
-          "thumbnailUrl": "http://app-feedback.blackview4g.com:8004/attachment/cn.com.blackview.dashcam/2025/12/17/193000-1334127-1-thumbnail.jpg"
-        },
-        {
-          "id": 1337612,
-          "feedbackId": 1334127,
-          "fileType": 0,
-          "fileUrl": "http://app-feedback.blackview4g.com:8004/attachment/cn.com.blackview.dashcam/2025/12/17/193000-1334127-2.txt",
-          "fileSize": 1619,
-          "thumbnailUrl": null
-        }
-      ],
-      handling: {
-        "id": 1334076,
-        "feedbackId": 1334160,
-        "problemCategory": null,
-        "handlePerson": null,
-        "handleTime": "2025-12-19 09:51:05",
-        "handleRemark": null,
-        "handleStatus": 1,
-        "callbackStatus": 1,
-        "solveStatus": 1
-      }
-    },
-  ])
+<script setup lang="ts" name="APP">
+import { reactive, ref } from 'vue'
+import { SmartTable } from '../src/index'
+import { getRendererManager, createFunctionalRenderer, setSmartTableConfig } from '../src/index'
+import { h } from 'vue'
+import { Download } from '@element-plus/icons-vue'
 
-  // 编辑单元格回调
-  const onCellBlur = (row: any, col: any) => {
-    console.log('cell blur:', row, col)
+// ============ 全局配置 ============
+const themeColor = ref('#409EFF')
+const showCustomRenderer = ref(true)
+
+const updateTheme = () => {
+  setSmartTableConfig({
+    theme: {
+      primaryColor: themeColor.value
+    }
+  })
+}
+
+// ============ 自定义渲染器示例 ============
+const statusRenderer = createFunctionalRenderer((props) => {
+  const val = props.row[props.col.key]
+  const isActive = val === 1
+
+  return h('span', {
+    class: `status-badge status-${isActive ? 'active' : 'inactive'}`,
+    style: {
+      padding: '4px 12px',
+      borderRadius: '12px',
+      fontSize: '12px',
+      fontWeight: '500',
+      backgroundColor: isActive ? '#f0f9ff' : '#fef2f2',
+      color: isActive ? '#0284c7' : '#dc2626',
+      border: `1px solid ${isActive ? '#7dd3fc' : '#fca5a5'}`
+    }
+  }, isActive ? '✅ 启用' : '❌ 禁用')
+})
+
+const toggleCustomRenderer = (show: boolean) => {
+  if (show) {
+    getRendererManager().register('status-badge', statusRenderer)
+  } else {
+    getRendererManager().unregister('status-badge')
   }
-  const onCellEnter = (row: any, col: any) => {
-    console.log('cell enter:', row, col)
+}
+
+// 初始化时注册自定义渲染器
+toggleCustomRenderer(true)
+
+// ============ 数据配置 ============
+const permissions = ref(['edit', 'view', 'delete'])
+const loading = ref(false)
+
+const pagination = reactive({
+  page: 1,
+  size: 10,
+  total: 0
+})
+
+// 字典配置
+const statusOptions = [
+  { label: '启用', value: 1, listClass: 'success' },
+  { label: '禁用', value: 0, listClass: 'danger' }
+]
+
+// 操作按钮配置
+const buttonConfigs = [
+  {
+    permission: 'edit',
+    label: '编辑',
+    type: 'primary',
+    action: (row: any) => addLog('info', '编辑', `编辑用户: ${row.name}`),
+  },
+  {
+    permission: 'delete',
+    label: '删除',
+    type: 'danger',
+    action: (row: any) => addLog('warning', '删除', `删除用户: ${row.name}`),
+    visible: (row: any) => row.id !== 1  // 第一行不可删除
+  },
+  {
+    permission: 'view',
+    label: '查看',
+    type: 'info',
+    action: (row: any) => addLog('info', '查看', `查看用户: ${row.name}`),
   }
-  const onCellChange = (row: any, col: any) => {
-    console.log('cell Change:', row, col)
+]
+
+// 列配置
+const columns = ref([
+  {
+    type: 'selection',
+    key: 'selection',
+    inControl: false,
+  },
+  {
+    type: 'index',
+    key: 'index',
+    label: '序号',
+    inControl: false,
+    columnProps: { width: 80, fixed: 'left' }
+  },
+  {
+    key: 'name',
+    label: '姓名',
+    visible: true,
+    render: 'html',
+    columnProps: { minWidth: 120, sortable: true }
+  },
+  {
+    key: 'email',
+    label: '邮箱',
+    visible: true,
+    render: 'copy',
+    columnProps: { minWidth: 200, sortable: true },
+    renderProps: {
+      copyTitle: '复制邮箱',
+      successText: '邮箱已复制到剪贴板',
+      iconColor: '#409EFF'
+    }
+  },
+  {
+    key: 'status',
+    label: '状态(Dict)',
+    visible: true,
+    render: 'dict',
+    columnProps: { minWidth: 100, sortable: true },
+    renderProps: {
+      options: statusOptions
+    }
+  },
+  {
+    key: 'status',
+    label: '状态(自定义渲染器)',
+    visible: true,
+    render: 'status-badge',
+    columnProps: { minWidth: 150 }
+  },
+  {
+    key: 'role',
+    label: '角色(Map)',
+    visible: true,
+    render: 'map',
+    columnProps: { minWidth: 100 },
+    renderProps: {
+      options: {
+        admin: '管理员',
+        user: '普通用户',
+        guest: '访客'
+      }
+    }
+  },
+  {
+    key: 'price',
+    label: '价格(Formatter)',
+    visible: true,
+    render: 'formatter',
+    columnProps: { minWidth: 120 },
+    formatter: (val: number) => `¥${val}`
+  },
+  {
+    key: 'avatar',
+    label: '头像(图片)',
+    visible: true,
+    render: 'img',
+    columnProps: { minWidth: 100 },
+    renderProps: {
+      width: '60px',
+      height: '60px',
+      fit: 'cover'
+    }
+  },
+  {
+    key: 'gallery',
+    label: '相册(多图)',
+    visible: true,
+    render: 'img',
+    columnProps: { minWidth: 120 },
+    renderProps: {
+      width: '80px',
+      height: '80px'
+    }
+  },
+  {
+    key: 'website',
+    label: '网站',
+    visible: true,
+    render: 'link',
+    columnProps: { minWidth: 120 },
+    renderProps: {
+      label: '访问网站',
+      href: 'https://github.com',
+      blank: true
+    }
+  },
+  {
+    key: 'selectValue',
+    label: '可选值',
+    visible: true,
+    render: 'select',
+    columnProps: { minWidth: 150 },
+    renderProps: {
+      options: [
+        { label: '选项1', value: 1 },
+        { label: '选项2', value: 2 },
+        { label: '选项3', value: 3 }
+      ]
+    }
+  },
+  {
+    key: 'orderNum',
+    label: '序号(可编辑)',
+    visible: true,
+    render: 'input-number',
+    columnProps: { minWidth: 150 },
+    renderProps: {
+      min: 0,
+      max: 100
+    }
+  },
+  {
+    key: 'username',
+    label: '用户名(可编辑)',
+    visible: true,
+    render: 'input',
+    columnProps: { minWidth: 150 }
+  },
+  {
+    key: 'action',
+    label: '操作(按钮)',
+    visible: true,
+    render: 'button',
+    columnProps: { minWidth: 100 },
+    renderProps: {
+      label: '点击我',
+      type: 'primary'
+    }
+  },
+  {
+    type: 'operation',
+    key: 'operation',
+    label: '操作',
+    inControl: false,
+    buttons: buttonConfigs,
+    columnProps: {
+      fixed: 'right',
+      width: 200
+    }
+  },
+  {
+    key: 'attachments',
+    label: '附件(插槽)',
+    visible: true,
+    render: 'slot',
+    slot: 'attachments',
+    columnProps: { minWidth: 150 }
   }
-  
-  const onCellClick = (row: any, col: any) => {
-    console.log('cell button click:', row, col)
+])
+
+// 渲染器列表（用于展示）
+const rendererList = [
+  { name: 'input', desc: '文本输入框' },
+  { name: 'input-number', desc: '数字输入框' },
+  { name: 'select', desc: '下拉选择' },
+  { name: 'button', desc: '按钮' },
+  { name: 'link', desc: '链接' },
+  { name: 'html', desc: 'HTML内容' },
+  { name: 'copy', desc: '复制功能' },
+  { name: 'img', desc: '图片预览' },
+  { name: 'dict', desc: '字典映射' },
+  { name: 'map', desc: '键值对映射' },
+  { name: 'formatter', desc: '自定义格式化' },
+  { name: 'slot', desc: '插槽自定义' },
+]
+
+// 表格数据
+const tableData = reactive([
+  {
+    id: 1,
+    name: '张三',
+    email: 'zhangsan@example.com',
+    status: 1,
+    role: 'admin',
+    price: 99.99,
+    avatar: 'https://via.placeholder.com/100',
+    gallery: [
+      'https://via.placeholder.com/100/FF0000',
+      'https://via.placeholder.com/100/00FF00',
+      'https://via.placeholder.com/100/0000FF'
+    ],
+    website: 'https://github.com',
+    selectValue: 1,
+    orderNum: 10,
+    username: 'zhangsan001',
+    attachments: [
+      {
+        id: 1,
+        fileType: 1,
+        thumbnailUrl: 'https://via.placeholder.com/100'
+      }
+    ]
+  },
+  {
+    id: 2,
+    name: '李四',
+    email: 'lisi@example.com',
+    status: 0,
+    role: 'user',
+    price: 59.99,
+    avatar: 'https://via.placeholder.com/100',
+    gallery: [],
+    website: '',
+    selectValue: 2,
+    orderNum: 20,
+    username: 'lisi002',
+    attachments: []
+  },
+  {
+    id: 3,
+    name: '王五',
+    email: 'wangwu@example.com',
+    status: 1,
+    role: 'guest',
+    price: 29.99,
+    avatar: 'https://via.placeholder.com/100',
+    gallery: ['https://via.placeholder.com/100/FFFF00'],
+    website: '',
+    selectValue: 3,
+    orderNum: 30,
+    username: 'wangwu003',
+    attachments: [
+      {
+        id: 2,
+        fileType: 0,
+        thumbnailUrl: null
+      }
+    ]
   }
-  </script>
-  
+])
+
+pagination.total = tableData.length
+
+// ============ 事件处理 ============
+const logs = ref<Array<{ event: string, message: string, type: string }>>([])
+
+const addLog = (type: string, event: string, message: string) => {
+  logs.value.unshift({ type, event, message })
+  if (logs.value.length > 20) {
+    logs.value.pop()
+  }
+}
+
+const clearLogs = () => {
+  logs.value = []
+}
+
+const onCellBlur = (row: any, col: any) => {
+  addLog('info', 'cellBlur', `单元格失焦: ${col.key} = ${row[col.key]}`)
+}
+
+const onCellEnter = (row: any, col: any) => {
+  addLog('success', 'cellEnter', `单元格回车: ${col.key} = ${row[col.key]}`)
+}
+
+const onCellChange = (row: any, col: any) => {
+  addLog('warning', 'cellChange', `单元格变更: ${col.key} = ${row[col.key]}`)
+}
+
+const onCellClick = (row: any, col: any) => {
+  addLog('info', 'cellClick', `按钮点击: ${col.key} - ${row.name}`)
+}
+</script>
+
+<style scoped>
+.demo-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.attachment-item {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 12px;
+}
+
+.log-container {
+  max-height: 300px;
+  overflow-y: auto;
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 4px;
+}
+
+.log-item {
+  padding: 6px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.log-item:last-child {
+  border-bottom: none;
+}
+
+.mb-4 {
+  margin-bottom: 16px;
+}
+
+.mt-4 {
+  margin-top: 16px;
+}
+
+.ml-2 {
+  margin-left: 8px;
+}
+
+.mr-2 {
+  margin-right: 8px;
+}
+
+.text-gray-500 {
+  color: #6b7280;
+}
+
+.bg-gray-100 {
+  background-color: #f3f4f6;
+}
+
+.p-2 {
+  padding: 8px;
+}
+
+.rounded {
+  border-radius: 4px;
+}
+
+/* 自定义渲染器样式 */
+.status-badge {
+  display: inline-block;
+  transition: all 0.3s;
+}
+</style>

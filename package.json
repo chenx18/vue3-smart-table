@@ -1,18 +1,32 @@
 {
   "name": "vue3-smart-table",
-  "version": "0.0.5",
-  "description": "基于 Vue 3 + Element Plus 的高可复用表格组件",
+  "version": "1.0.0",
+  "description": "基于 Vue 3 + Element Plus 的高可复用表格组件库 - 插件化架构，支持自定义渲染器",
   "main": "dist/vue3-smart-table.cjs.js",
   "module": "dist/vue3-smart-table.es.js",
+  "unpkg": "dist/vue3-smart-table.umd.js",
+  "jsdelivr": "dist/vue3-smart-table.umd.js",
   "types": "dist/types/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
+  "exports": {
+    ".": {
+      "import": "./dist/vue3-smart-table.es.js",
+      "require": "./dist/vue3-smart-table.cjs.js",
+      "types": "./dist/types/index.d.ts"
+    },
+    "./dist/style.css": "./dist/style.css"
+  },
   "keywords": [
     "vue3",
     "element-plus",
     "table",
-    "smart-table"
+    "smart-table",
+    "renderer",
+    "plugin",
+    "composition-api"
   ],
   "author": "xiechen",
   "license": "MIT",

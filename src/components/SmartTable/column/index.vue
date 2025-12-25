@@ -82,10 +82,11 @@
 <script setup lang="ts">
 import { computed, toRefs } from 'vue'
 import type { PropType } from 'vue'
-import type { ColumnConfig, RendererName } from '../types'
-import { createRenderer } from './renderers'
+import type { ColumnConfig } from '../types'
+import { getRendererManager } from '../renderer'
+import { registerBuiltInRenderers } from '../renderers'
 import { useOperationColumn } from '../hooks/useOperationColumn'
-import { getValueByPath } from '@/utils/path'
+import { getValueByPath } from '../utils/path'
 
 const props = defineProps({
   col: { type: Object as PropType<ColumnConfig>, required: true },
@@ -111,8 +112,22 @@ const handleCellEnter = (row: any, key: string) => emit('cellEnter', row, key)
 const handleCellClick = (row: any, col: any) => emit('cellClick', row, col)
 
 /** ========== renderer 注册 ========== */
-const renderer = createRenderer() as Record<RendererName, any>
+// 注册内置渲染器（重复调用会自动跳过已存在的）
+registerBuiltInRenderers(getRendererManager())
 
+// 获取所有渲染器（内置 + 自定义）
+const renderer = computed(() => {
+  const manager = getRendererManager()
+  const allRenderers: Record<string, any> = {}
+
+  // 合并内置渲染器和自定义渲染器
+  manager.names().forEach((name: string) => {
+    const r = manager.get(name)
+    if (r) allRenderers[name] = r
+  })
+
+  return allRenderers
+})
 
 /** ========== operation 列逻辑 ========== */
 const {
@@ -141,7 +156,7 @@ const showOperationColumn = computed(() => {
 /** 操作列宽度 */
 const operationWidth = computed(() => {
   // 无行数据，用静态宽度
-  if (!col.value.__rows) return optWidth.value 
+  if (!col.value.__rows) return optWidth.value
   // 有行数据，取最大宽度
   return getMaxOptWidth(col.value.__rows)
 })
@@ -154,7 +169,7 @@ function isDataOrOperationColumn(c: ColumnConfig) {
 }
 </script>
 <style>
-  .copy-wrapper:hover .copy-btn {
+  .st_copy_wrapper:hover .st_copy_btn {
     display: inline-block !important;
   }
 </style>
