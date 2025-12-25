@@ -181,7 +181,6 @@ src/
 │  ├─ renderer.ts            # 渲染器管理器
 │  ├─ config.ts              # 全局配置管理
 │  ├─ utils/                 # 内部工具函数
-│  ├─ styles/                # 组件样式
 │  ├─ types.ts               # 类型定义
 │  └─ index.vue              # SmartTable 主组件
 ├─ types/                    # 类型工具（对外提供）
@@ -231,7 +230,7 @@ const loading = ref(false)
 
 ---
 
-## 新特性 (v1.0.0)
+
 
 ### 1. 插件化架构
 
@@ -265,9 +264,6 @@ setSmartTableConfig({
   defaultPagination: {
     page: 1,
     size: 20
-  },
-  theme: {
-    primaryColor: '#409EFF'
   },
   renderers: {
     // 全局注册自定义渲染器
@@ -448,6 +444,9 @@ const tableData = [
     copyTitle?: string        // 复制提示文本，默认 '复制'
     successText?: string      // 成功提示，默认 '复制成功'
     errorText?: string        // 失败提示，默认 '复制失败'
+    lineClamp?: 2              // 默认显示2行，超出省略
+    textStyles?: object        // 文本样式 {fontSize: '12px'}
+    textClass?: string         // 文本类名 
   }
 }
 ```
@@ -1150,44 +1149,7 @@ interface SmartTableEmits {
 
 ---
 
-## 7. 主题定制
-
-### CSS 变量
-
-在项目中覆盖 CSS 变量来自定义主题:
-
-```css
-/* 你的样式文件 */
-:root {
-  --st-primary-color: #1890ff;
-  --st-success-color: #52c41a;
-  --st-warning-color: #faad14;
-  --st-danger-color: #ff4d4f;
-  --st-info-color: #8c8c8c;
-
-  /* 文本颜色 */
-  --st-text-primary: #262626;
-  --st-border-color: #d9d9d9;
-  --st-bg-color: #ffffff;
-}
-```
-
-### JavaScript 配置
-
-```typescript
-import { setSmartTableConfig } from 'vue3-smart-table'
-
-setSmartTableConfig({
-  theme: {
-    primaryColor: '#1890ff',
-    successColor: '#52c41a'
-  }
-})
-```
-
----
-
-## 8. 按需引入
+## 6. 按需引入
 
 ### 只引入需要的部分
 
@@ -1220,7 +1182,7 @@ import { getRendererManager, createFunctionalRenderer } from 'vue3-smart-table'
 
 ---
 
-## 9. 高级用法
+## 7. 高级用法
 
 ### 自定义渲染器（3种方式）
 
@@ -1338,7 +1300,7 @@ const permissions = ['user:edit', 'user:view']
 
 ---
 
-## 10. 完整示例
+## 8. 完整示例
 
 ```vue
 <!-- 全局注册 -->

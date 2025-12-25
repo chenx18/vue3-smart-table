@@ -2,18 +2,6 @@
   <div class="demo-container" style="padding: 20px;">
     <h1>Vue3 Smart Table - 完整示例</h1>
 
-    <!-- 全局配置区域 -->
-    <el-card class="mb-4" header="全局配置">
-      <el-form inline>
-        <el-form-item label="主题色">
-          <el-color-picker v-model="themeColor" @change="updateTheme" />
-        </el-form-item>
-        <el-form-item label="显示自定义渲染器">
-          <el-switch v-model="showCustomRenderer" @change="toggleCustomRenderer" />
-        </el-form-item>
-      </el-form>
-    </el-card>
-
     <!-- 表格区域 -->
     <el-card header="表格示例（所有内置渲染器 + 自定义渲染器）">
       <SmartTable
@@ -146,18 +134,6 @@ import { SmartTable } from '../src/index'
 import { getRendererManager, createFunctionalRenderer, setSmartTableConfig } from '../src/index'
 import { h } from 'vue'
 import { Download } from '@element-plus/icons-vue'
-
-// ============ 全局配置 ============
-const themeColor = ref('#409EFF')
-const showCustomRenderer = ref(true)
-
-const updateTheme = () => {
-  setSmartTableConfig({
-    theme: {
-      primaryColor: themeColor.value
-    }
-  })
-}
 
 // ============ 自定义渲染器示例 ============
 const statusRenderer = createFunctionalRenderer((props) => {

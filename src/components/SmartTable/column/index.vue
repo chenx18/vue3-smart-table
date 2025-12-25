@@ -168,8 +168,3 @@ function isDataOrOperationColumn(c: ColumnConfig) {
   return true
 }
 </script>
-<style>
-  .st_copy_wrapper:hover .st_copy_btn {
-    display: inline-block !important;
-  }
-</style>

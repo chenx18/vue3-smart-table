@@ -74,14 +74,23 @@ const copy = createFunctionalRenderer((props) => {
     'color': rp.iconColor || '#409EFF',
     'user-select': 'none'
   }
+  const testStyle = {
+    'padding-right': '10px',
+    'display': '-webkit-box',
+    '-webkit-box-orient': 'vertical',
+    '-webkit-line-clamp': rp.lineClamp ?? 2,
+    'overflow': 'hidden',
+    ...rp.textStyles
+  }
   return h('div', {
       class: 'st_copy_wrapper',
       style: 'width: 100%; position: relative; display: inline-block;'
     },
     [
       h('span', {
-        class: 'st_copy_text line-clamp-1',
-        style: 'padding-right: 10px; display: block;',
+        class: `st_copy_text ${rp.textClass ?? ''}`,
+        style: testStyle,
+        title: val
       }, val),
       val && h('span', {
         class: 'st_copy_btn',

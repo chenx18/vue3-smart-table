@@ -42,14 +42,6 @@ export interface SmartTableConfig {
   defaultTableProps?: Record<string, any>
   /** 默认列属性 */
   defaultColumnProps?: Record<string, any>
-  /** 主题配置 */
-  theme?: {
-    primaryColor?: string
-    successColor?: string
-    warningColor?: string
-    dangerColor?: string
-    infoColor?: string
-  }
 }
 
 /* ======================= 操作列按钮 ======================= */
@@ -96,6 +88,9 @@ export interface RendererPropsMap {
     successText?: string
     /** 复制失败提示 */
     errorText?: string
+    lineClamp?: number             // 默认显示2行，超出省略
+    textStyles?: any        // 文本样式 {fontSize: '12px'}
+    textClass?: string  
   }>
 
   img: WithRestProps<{

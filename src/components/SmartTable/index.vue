@@ -3,7 +3,7 @@
     v-bind="$attrs"
     :data="data"
     :row-key="rowKey"
-    class="smart-table"
+    class="smart_table"
     v-loading="loading">
     <TableColumn 
       v-for="col in cachedColumns" 
@@ -84,8 +84,16 @@
 
 </script>
 
-<style scoped>
-  .smart-table {
+<style>
+  .smart_table {
     width: 100%;
+  }
+  
+  .st_copy_wrapper:hover .st_copy_btn {
+    display: inline-block !important;
+  }
+
+  .st_copy_btn:hover {
+    transform: translateY(-50%) scale(1.1);
   }
 </style>

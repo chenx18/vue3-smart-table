@@ -14,14 +14,7 @@ const defaultConfig: SmartTableConfig = {
     total: 0
   },
   defaultTableProps: {},
-  defaultColumnProps: {},
-  theme: {
-    primaryColor: '#409EFF',
-    successColor: '#67C23A',
-    warningColor: '#E6A23C',
-    dangerColor: '#F56C6C',
-    infoColor: '#909399'
-  }
+  defaultColumnProps: {}
 }
 
 /**
