@@ -415,11 +415,10 @@ const tableData = reactive([
     status: 1,
     role: 'admin',
     price: 99.99,
-    avatar: 'https://via.placeholder.com/100',
+    avatar: 'https://automation.vuejs.org/images/chrome_frameworks_fund.avif',
     gallery: [
-      'https://via.placeholder.com/100/FF0000',
-      'https://via.placeholder.com/100/00FF00',
-      'https://via.placeholder.com/100/0000FF'
+      'https://automation.vuejs.org/images/chrome_frameworks_fund.avif',
+      'https://automation.vuejs.org/images/vuemastery.avif',
     ],
     website: 'https://github.com',
     selectValue: 1,
@@ -429,7 +428,7 @@ const tableData = reactive([
       {
         id: 1,
         fileType: 1,
-        thumbnailUrl: 'https://via.placeholder.com/100'
+        thumbnailUrl: 'https://automation.vuejs.org/images/vuemastery.avif'
       }
     ]
   },
@@ -440,7 +439,7 @@ const tableData = reactive([
     status: 0,
     role: 'user',
     price: 59.99,
-    avatar: 'https://via.placeholder.com/100',
+    avatar: 'https://automation.vuejs.org/images/vuemastery.avif',
     gallery: [],
     website: '',
     selectValue: 2,
@@ -455,8 +454,8 @@ const tableData = reactive([
     status: 1,
     role: 'guest',
     price: 29.99,
-    avatar: 'https://via.placeholder.com/100',
-    gallery: ['https://via.placeholder.com/100/FFFF00'],
+    avatar: 'https://automation.vuejs.org/images/vuemastery.avif',
+    gallery: ['https://automation.vuejs.org/images/vuemastery.avif'],
     website: '',
     selectValue: 3,
     orderNum: 30,
