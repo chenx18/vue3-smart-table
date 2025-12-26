@@ -10,6 +10,7 @@
         :rowKey="'id'"
         :data="tableData"
         v-model:columns="columns"
+        :debug="true"
         :pagination="pagination"
         :permissions="permissions"
         :cacheKey="'vue3-smart-table-demo'"
@@ -166,7 +167,7 @@ const toggleCustomRenderer = (show: boolean) => {
 toggleCustomRenderer(true)
 
 // ============ 数据配置 ============
-const permissions = ref(['edit', 'view', 'delete'])
+const permissions = ref(['edit', 'view', 'delete', 'copy','detail'])
 const loading = ref(false)
 
 const pagination = reactive({
@@ -201,7 +202,21 @@ const buttonConfigs = [
     label: '查看',
     type: 'info',
     action: (row: any) => addLog('info', '查看', `查看用户: ${row.name}`),
-  }
+  },
+  {
+    permission: 'copy',
+    label: '复制',
+    type: 'info',
+    action: (row: any) => addLog('info', '复制', `复制用户: ${row.name}`),
+    visible: (row: any) => row.name === 'admin'
+  },
+  {
+    permission: 'detail',
+    label: '详情',
+    type: 'info',
+    action: (row: any) => addLog('info', '复制', `复制用户: ${row.name}`),
+    visible: (row: any) => row.name === 'admin'
+  },
 ]
 
 // 列配置

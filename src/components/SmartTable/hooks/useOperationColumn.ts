@@ -1,6 +1,7 @@
 import { computed } from 'vue'
 
 import { ButtonConfig } from "../types"
+
 /**
  * useOperationColumn
  *
@@ -18,7 +19,7 @@ export function useOperationColumn(
   userPermissions: string[] = []
 ) {
   /** 默认按钮宽度 */
-  const defaultWidth = 60
+  const defaultWidth = 55
 
   /** 超级权限标识 */
   const all_permission = '*:*:*'
@@ -59,6 +60,9 @@ export function useOperationColumn(
   /**
    * 操作列宽度（仅基于权限）
    * 用于无行数据时的兜底宽度计算
+   *
+   * 注意：这里不考虑 visible，因为没有 row 数据无法执行 visible 函数
+   * 实际使用时会根据行数据重新计算
    */
   const optWidth = computed(() => {
     const permittedBtns = buttonConfigs

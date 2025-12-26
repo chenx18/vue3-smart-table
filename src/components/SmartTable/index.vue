@@ -5,10 +5,10 @@
     :row-key="rowKey"
     class="smart_table"
     v-loading="loading">
-    <TableColumn 
-      v-for="col in cachedColumns" 
-      :key="col.key" 
-      :col="col" 
+    <TableColumn
+      v-for="col in cachedColumns"
+      :key="col.key"
+      :col="col"
       :permissions="permissions"
       :pagination="pagination"
       @cell-change="handleCellChange"
@@ -39,7 +39,6 @@
     },
     cacheKey: String,
     pagination: { type: Object, default: () => ({}) },
-
   })
   
   const emit = defineEmits([
@@ -58,6 +57,22 @@
     cachedColumns,
     (val: ColumnConfig[]) => emit("update:columns", val),
     { deep: true, immediate: true },
+  )
+
+  // ------------------ 将行数据传递给 operation 列 ------------------
+  watch(
+    () => props.data,
+    (newData) => {
+      if (!newData) return
+
+      // 为 operation 列注入 __rows，用于计算宽度
+      cachedColumns.value.forEach((col: ColumnConfig) => {
+        if (col.type === 'operation') {
+          col.__rows = newData
+        }
+      })
+    },
+    { deep: true, immediate: true }
   )
 
   // ----------------事件封装 ------------------
