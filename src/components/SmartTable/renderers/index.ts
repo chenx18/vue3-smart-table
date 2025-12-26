@@ -164,6 +164,7 @@ const img = createFunctionalRenderer((props) => {
     return h(ElImage, {
       src: imageList[0],
       previewSrcList: rp.previewSrcList || imageList,
+      previewTeleported: true, 
       fit: rp.fit || 'contain',
       style: defaultStyle,
       ...rp
@@ -179,6 +180,7 @@ const img = createFunctionalRenderer((props) => {
       h(ElImage, {
         src: imageList[0],
         previewSrcList: rp.previewSrcList || imageList,
+        previewTeleported: true, 
         fit: rp.fit || 'contain',
         style: defaultStyle,
         ...rp
@@ -261,6 +263,7 @@ const icon = createFunctionalRenderer((props) => {
     return h(ElImage, {
       src: val,
       previewSrcList: [val],
+      previewTeleported: true, 
       fit: 'contain',
       style: 'width:40px;height:40px',
       ...rp
