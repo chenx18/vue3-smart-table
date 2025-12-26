@@ -175,7 +175,6 @@ onMounted(() => {
 ```txt
 src/
 ├─ components/SmartTable/    # 主组件（完全自包含）
-│  ├─ column/                # TableColumn 子组件
 │  ├─ hooks/                 # 组件内部 Hooks（不对外暴露）
 │  ├─ renderers/             # 内置渲染器
 │  ├─ renderer.ts            # 渲染器管理器
@@ -492,6 +491,7 @@ const columns = [
     previewSrcList?: string[]         // 预览图片列表（可选）
     placeholder?: string              // 无图片时的占位文本
     style?: string                    // 自定义样式
+    ...                               // el-Image属性都支持
   }
 }
 ```
