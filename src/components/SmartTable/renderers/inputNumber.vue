@@ -15,6 +15,7 @@ import { getValueByPath, setValueByPath } from '../utils/path'
 interface Props {
   readonly row: any
   readonly col: ColumnConfig
+  readonly index: number
   onCellChange?: (row: any, col: ColumnConfig) => void
   onCellBlur?: (row: any, col: ColumnConfig) => void
   onCellEnter?: (row: any, col: ColumnConfig) => void

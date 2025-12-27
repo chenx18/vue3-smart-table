@@ -72,6 +72,7 @@
           :is="renderer[col.render]"
           :row="scope.row"
           :col="col"
+          :index="scope.$index"
           :onCellChange="handleCellChange"
           :onCellBlur="handleCellBlur"
           :onCellEnter="handleCellEnter"

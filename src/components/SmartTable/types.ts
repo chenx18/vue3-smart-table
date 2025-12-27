@@ -223,7 +223,17 @@ export interface BaseColumn<R extends DefaultRow> {
 export interface SelectionColumn<R extends DefaultRow> extends BaseColumn<R> { type: 'selection' }
 export interface IndexColumn<R extends DefaultRow> extends BaseColumn<R> { type: 'index' }
 export interface OperationColumn<R extends DefaultRow> extends BaseColumn<R> { type: 'operation'; buttons: ButtonConfig<R>[] }
-export interface DataColumn<R extends DefaultRow> extends BaseColumn<R> { type?: 'default'; formatter?: (value: any, row: R) => any }
+export interface DataColumn<R extends DefaultRow> extends BaseColumn<R> {
+  type?: 'default'
+  /**
+   * 格式化函数
+   * @param value 单元格值
+   * @param row 当前行数据
+   * @param index 当前行索引（从0开始）
+   * @returns 格式化后的显示内容
+   */
+  formatter?: (value: any, row: R, index: number) => any
+}
 
 export type ColumnConfig<R extends DefaultRow = any> =
   | SelectionColumn<R>

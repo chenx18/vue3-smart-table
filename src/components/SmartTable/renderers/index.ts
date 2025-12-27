@@ -243,10 +243,11 @@ export function isDataColumn(
 }
 
 const formatter = createFunctionalRenderer((props) => {
-  const { col, row } = props
+  const { col, row, index } = props
   const val = getValueByPath(props.row, props.col.key) ?? ''
   if (isDataColumn(col)) {
-    return col.formatter?.(val, row)
+    // formatter 函数签名: (value, row, index) => string
+    return col.formatter?.(val, row, index)
   }
   return val ?? ''
 })

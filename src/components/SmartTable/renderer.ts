@@ -83,7 +83,7 @@ export function getRendererManager(): RendererManager {
  */
 export function wrapSFCComponent(comp: Component): Renderer {
   return defineComponent({
-    props: ['row', 'col', 'onCellChange', 'onCellBlur', 'onCellEnter', 'onClick'],
+    props: ['row', 'col', 'index', 'onCellChange', 'onCellBlur', 'onCellEnter', 'onClick'],
     setup(props) {
       return () => h(comp, props)
     }
@@ -97,6 +97,7 @@ export function createFunctionalRenderer(
   render: (props: {
     row: any
     col: any
+    index: number
     onCellChange?: (row: any, col: any) => void
     onCellBlur?: (row: any, col: any) => void
     onCellEnter?: (row: any, col: any) => void
@@ -104,7 +105,7 @@ export function createFunctionalRenderer(
   }) => any
 ): Renderer {
   return defineComponent({
-    props: ['row', 'col', 'onCellChange', 'onCellBlur', 'onCellEnter', 'onClick'],
+    props: ['row', 'col', 'index', 'onCellChange', 'onCellBlur', 'onCellEnter', 'onClick'],
     setup(props) {
       return () => render(props)
     }

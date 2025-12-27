@@ -288,8 +288,8 @@ const columns = ref([
     label: '价格(Formatter)',
     visible: true,
     render: 'formatter',
-    columnProps: { minWidth: 120 },
-    formatter: (val: number) => `¥${val}`
+    columnProps: { minWidth: 180 },
+    formatter: (val: number, row, index) => `val:${val}, row:${row}, index: ${index},  `
   },
   {
     key: 'avatar',
