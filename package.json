@@ -1,6 +1,6 @@
 {
   "name": "vue3-smart-table",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "基于 Vue 3 + Element Plus 的高可复用表格组件库 - 插件化架构，支持自定义渲染器",
   "main": "dist/vue3-smart-table.cjs.js",
   "module": "dist/vue3-smart-table.es.js",
@@ -20,6 +20,7 @@
       "import": "./dist/vue3-smart-table.es.js",
       "require": "./dist/vue3-smart-table.cjs.js"
     },
+    "./style.css": "./dist/index.css",
     "./dist/style.css": "./dist/index.css"
   },
   "keywords": [
@@ -55,7 +56,9 @@
     "prepublishOnly": "npm run build",
     "prepack": "npm run build",
     "release": "npm run build && npm publish",
+    "release:alpha": "npm run build && npm publish --tag alpha",
     "release:beta": "npm run build && npm publish --tag beta",
+    "release:rc": "npm run build && npm publish --tag rc",
     "release:dry": "npm run build && npm publish --dry-run"
   },
   "peerDependencies": {
@@ -83,5 +86,8 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "sideEffects": [
+    "dist/*.css"
+  ]
 }

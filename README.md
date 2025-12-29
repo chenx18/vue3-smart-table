@@ -49,7 +49,7 @@ import 'element-plus/dist/index.css'
 
 // 引入 SmartTable
 import SmartTable from 'vue3-smart-table'
-import 'vue3-smart-table/dist/style.css'
+import 'vue3-smart-table/style.css'
 
 const app = createApp(App)
 app.use(ElementPlus)

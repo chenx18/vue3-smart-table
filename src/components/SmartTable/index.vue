@@ -122,7 +122,7 @@
     'cellChange',
     'cellBlur',
     'cellEnter',
-    'cell-click',
+    'cellClick',
   ])
 
   // ------------------ columns 处理 ------------------
@@ -271,7 +271,7 @@
   }
   const handleCellClick = (row: any, col: any) => {
     if(!col) return
-    emit('cell-click', row, col)
+    emit('cellClick', row, col)
   }
 
   // el-table

@@ -16,6 +16,7 @@ interface Props {
   readonly row: any
   readonly col: ColumnConfig
   readonly index: number
+  onCellChange?: (row: any, col: ColumnConfig) => void
   onCellBlur?: (row: any, col: ColumnConfig) => void
   onCellEnter?: (row: any, col: ColumnConfig) => void
 }
@@ -25,6 +26,7 @@ const value = ref(getValueByPath(props.row, props.col.key))
 
 watch(value, (v) => {
   setValueByPath(props.row, props.col.key, v)
+  props.onCellChange?.(props.row, props.col)
 })
 
 const onBlur = () => props.onCellBlur?.(props.row, props.col)
