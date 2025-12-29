@@ -1,6 +1,6 @@
 {
   "name": "vue3-smart-table",
-  "version": "1.0.6",
+  "version": "2.0.0",
   "description": "基于 Vue 3 + Element Plus 的高可复用表格组件库 - 插件化架构，支持自定义渲染器",
   "main": "dist/vue3-smart-table.cjs.js",
   "module": "dist/vue3-smart-table.es.js",
@@ -9,35 +9,63 @@
   "types": "dist/types/index.d.ts",
   "files": [
     "dist",
-    "src"
+    "src",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "exports": {
     ".": {
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/vue3-smart-table.es.js",
-      "require": "./dist/vue3-smart-table.cjs.js",
-      "types": "./dist/types/index.d.ts"
+      "require": "./dist/vue3-smart-table.cjs.js"
     },
-    "./dist/style.css": "./dist/style.css"
+    "./dist/style.css": "./dist/index.css"
   },
   "keywords": [
     "vue3",
+    "vue",
     "element-plus",
     "table",
     "smart-table",
     "renderer",
     "plugin",
-    "composition-api"
+    "composition-api",
+    "typescript",
+    "组件库",
+    "数据表格",
+    "前端组件"
   ],
-  "author": "xiechen",
+  "author": {
+    "name": "chenx18"
+  },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chenx18/vue3-smart-table.git"
+  },
+  "bugs": {
+    "url": "https://github.com/chenx18/vue3-smart-table/issues"
+  },
+  "homepage": "https://github.com/chenx18/vue3-smart-table#readme",
   "scripts": {
-    "build": "vue-tsc --declaration --emitDeclarationOnly && vite build",
+    "build": "vite build && vue-tsc --declaration --emitDeclarationOnly --outDir dist/types",
     "dev:demo": "cd demo && vite",
-    "preview:demo": "vite preview demo"
+    "preview:demo": "vite preview demo",
+    "prepublishOnly": "npm run build",
+    "prepack": "npm run build",
+    "release": "npm run build && npm publish",
+    "release:beta": "npm run build && npm publish --tag beta",
+    "release:dry": "npm run build && npm publish --dry-run"
   },
   "peerDependencies": {
     "element-plus": "^2.9.0",
-    "vue": "3.5.13"
+    "vue": ">=3.5.0"
+  },
+  "peerDependenciesMeta": {
+    "element-plus": {
+      "optional": false
+    }
   },
   "devDependencies": {
     "@types/node": "^25.0.2",
@@ -48,5 +76,12 @@
     "vite": "^6.4.1",
     "vue": "^3.5.25",
     "vue-tsc": "^3.1.8"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

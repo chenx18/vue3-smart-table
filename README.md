@@ -1342,7 +1342,7 @@ import { SmartTable } from 'vue3-smart-table'
 </SmartTable>
 ```
 ## 完整示例代码
-![DEMO](./demo/assets/dmeo.jpg)
+![DEMO](./demo/assets/demo.jpg)
 ```vue
 <template>
     <div class="demo-container" style="padding: 20px;">
