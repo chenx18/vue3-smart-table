@@ -189,7 +189,7 @@ const toggleCustomRenderer = (show: boolean) => {
 toggleCustomRenderer(true)
 
 // ============ 数据配置 ============
-const permissions = ref(['edit3', 'view3', 'delete3', 'copy3', 'detail3'])
+const permissions = ref(['edit', 'view', 'delete', 'copy', 'detail'])
 const loading = ref(false)
 
 const pagination = reactive({
