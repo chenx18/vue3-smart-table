@@ -4,3 +4,6 @@ demo/dist
 .env
 .DS_Store
 *.log
+
+# Claude Code 配置
+.claude/
