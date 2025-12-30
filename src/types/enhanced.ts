@@ -1,7 +1,7 @@
 /**
  * 增强类型系统 - 提供更好的类型推断
  */
-import type { ColumnConfig, RendererName } from '../components/SmartTable/types'
+import type { ColumnConfig, ColumnType } from '../components/SmartTable/types'
 
 /**
  * 提取行数据的类型
@@ -20,7 +20,7 @@ export type TableDataFromColumns<T extends ColumnConfig[]> = T extends (infer C)
 /**
  * 渲染器 Props 类型推断
  */
-export type InferRendererProps<T extends RendererName> =
+export type InferRendererProps<T extends ColumnType> =
   T extends 'html'
     ? { style?: string; class?: string; [key: string]: any }
     : T extends 'copy'

@@ -29,7 +29,7 @@
 
       <!-- ========== operation 列 ========== -->
       <el-table-column
-        v-else-if="col.type === 'operation' && isOperationVisible(col)"
+        v-else-if="col.type === 'operation'"
         :label="col.label || '操作'"
         align="center"
         v-bind="{
@@ -133,52 +133,12 @@
     { deep: true, immediate: true },
   )
 
-  // ------------------ 列处理 ------------------
-  
-  // 可见列（按用户配置顺序）
-  const visibleColumns = computed(() =>
-    cachedColumns.value.filter(col => {
-      // 特殊列始终显示
-      if (isSpecialColumn(col.type)) return true
-      // 数据列根据 visible 控制
-      return col.visible !== false
-    })
-  )
-
-  // 生成列的唯一 key
-  const getColumnKey = (col: ColumnConfig, idx: number) => {
-    if (col.type === 'selection') return `selection-${idx}`
-    if (col.type === 'index') return `index-${idx}`
-    if (col.type === 'operation') return `operation-${col.key}-${idx}`
-    return `${col.key}-${idx}`
-  }
-
-  // operation 列集合（用于 hook 管理）
+  // ------------------ operation 列逻辑（需要在 visibleColumns 之前定义） ------------------
+  // operation 列集合
   const operationColumns = computed(() =>
     cachedColumns.value.filter(col => col.type === 'operation')
   )
 
-  // ------------------ index 列序号计算 ------------------
-  const computeIndex = (index: number) => {
-    const page = props.pagination?.page
-    const size = props.pagination?.size
-    return page && size ? (page - 1) * size + index + 1 : index + 1
-  }
-
-  // ------------------ renderer 获取 ------------------
-  const renderer = computed(() => {
-    const manager = getRendererManager()
-    const allRenderers: Record<string, any> = {}
-
-    manager.names().forEach((name: string) => {
-      const r = manager.get(name)
-      if (r) allRenderers[name] = r
-    })
-
-    return allRenderers
-  })
-
-  // ------------------ operation 列逻辑 ------------------
   // 为每个 operation 列创建 useOperationColumn 实例
   const operationColumnMap = computed(() => {
     const map = new Map<string, ReturnType<typeof useOperationColumn>>()
@@ -197,6 +157,23 @@
 
   const getOperationColumnHook = (col: ColumnConfig) => {
     return operationColumnMap.value.get(col.key)
+  }
+
+  // 判断 operation 列是否应该显示
+  const isOperationVisible = (col: ColumnConfig) => {
+    if (!isOperationColumn(col)) return false
+    
+    const hook = getOperationColumnHook(col)
+    if (!hook) return false
+
+    const buttons = col.buttons || []
+    if (!buttons.length) return false
+
+    // 无数据时，只要有权限的按钮就显示
+    if (!props.data?.length) return hook.hasAnyButton.value
+
+    // 有数据时，检查是否至少有一行有可见按钮
+    return hook.hasAnyVisibleButton(props.data)
   }
 
   const getOperationWidth = (col: ColumnConfig) => {
@@ -219,20 +196,49 @@
     return hook.getVisibleButtons(row)
   }
 
-  // 判断 operation 列是否应该显示
-  const isOperationVisible = (col: ColumnConfig) => {
-    if (!isOperationColumn(col)) return false
-    
-    const hook = getOperationColumnHook(col)
-    if (!hook) return false
+  // ------------------ 列处理 ------------------
+  
+  // 可见列（按用户配置顺序）
+  const visibleColumns = computed(() =>
+    cachedColumns.value.filter(col => {
+      // operation 列需要判断是否有可见按钮
+      if (col.type === 'operation') {
+        return isOperationVisible(col)
+      }
+      // selection/index 始终显示
+      if (isSpecialColumn(col.type)) return true
+      // 数据列根据 visible 控制
+      return col.visible !== false
+    })
+  )
 
-    const buttons = col.buttons || []
-    if (!buttons.length) return false
-
-    if (!props.data?.length) return hook.hasAnyButton.value
-
-    return hook.hasAnyVisibleButton(props.data)
+  // 生成列的唯一 key
+  const getColumnKey = (col: ColumnConfig, idx: number) => {
+    if (col.type === 'selection') return `selection-${idx}`
+    if (col.type === 'index') return `index-${idx}`
+    if (col.type === 'operation') return `operation-${col.key}-${idx}`
+    return `${col.key}-${idx}`
   }
+
+  // ------------------ index 列序号计算 ------------------
+  const computeIndex = (index: number) => {
+    const page = props.pagination?.page
+    const size = props.pagination?.size
+    return page && size ? (page - 1) * size + index + 1 : index + 1
+  }
+
+  // ------------------ renderer 获取 ------------------
+  const renderer = computed(() => {
+    const manager = getRendererManager()
+    const allRenderers: Record<string, any> = {}
+
+    manager.names().forEach((name: string) => {
+      const r = manager.get(name)
+      if (r) allRenderers[name] = r
+    })
+
+    return allRenderers
+  })
 
   // ------------------ 事件封装 ------------------
   const handleCellChange = (row: any, col: ColumnConfig) => {
