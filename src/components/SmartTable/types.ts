@@ -67,185 +67,208 @@ export interface ButtonConfig<R = any> {
   width?: number
 }
 
-/* ======================= Renderer ======================= */
+/* ======================= 列类型 ======================= */
 
-export type RendererName =
-  | 'html'
-  | 'copy'
-  | 'img'
-  | 'dict'
-  | 'map'
-  | 'formatter'
-  | 'icon'
+/**
+ * 列类型枚举
+ * 包含特殊列类型和渲染器类型
+ */
+export type ColumnType =
+  // 特殊列
+  | 'selection'
+  | 'index'
+  | 'operation'
+  // 内置渲染器
   | 'input'
   | 'input-number'
   | 'select'
-  | 'button'
+  | 'dict'
+  | 'map'
+  | 'img'
   | 'link'
+  | 'button'
+  | 'copy'
+  | 'html'
+  | 'formatter'
+  | 'icon'
   | 'slot'
-  
-/** renderer 对应的 renderProps */
-export interface RendererPropsMap {
+
+/* ======================= Props 类型映射 ======================= */
+
+/** 各类型对应的 props */
+export interface ColumnPropsMap {
+  // 特殊列
+  selection: {}
+  index: {}
+  operation: {}
+
+  // 渲染器
   html: WithRestProps<{
-    style?: string
+    style?: string | Record<string, any>
     class?: string
   }>
 
   copy: WithRestProps<{
-    /** 复制按钮图标颜色 */
     iconColor?: string
-    /** 复制按钮提示文本 */
     copyTitle?: string
-    /** 复制成功提示 */
     successText?: string
-    /** 复制失败提示 */
     errorText?: string
-    lineClamp?: number             // 默认显示2行，超出省略
-    textStyles?: any        // 文本样式 {fontSize: '12px'}
-    textClass?: string  
+    lineClamp?: number
+    textStyles?: Record<string, any>
+    textClass?: string
   }>
 
   img: WithRestProps<{
-    /** 图片宽度 */
     width?: string | number
-    /** 图片高度 */
     height?: string | number
-    /** 图片适应方式 */
     fit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down'
-    /** 预览图片列表 */
     previewSrcList?: string[]
-    /** 无图片时的占位文本 */
     placeholder?: string
-    /** 自定义样式 */
-    style?: string
+    style?: string | Record<string, any>
   }>
 
   dict: WithRestProps<{
-    /** 字典配置 */
     options: Array<{
       label: string
       value: string | number
       listClass?: string
       cssClass?: string
+      tagProps?: Record<string, any>
     }>
-    /** 是否显示未匹配的值 */
     showValue?: boolean
   }>
 
   map: WithRestProps<{
-    /** key-value 映射 */
     options: Record<string | number, any>
   }>
 
-  formatter: never  // formatter 使用 ColumnConfig.formatter 函数
+  formatter: WithRestProps<{}>
 
   icon: WithRestProps<{
-    /** 自定义样式 */
-    style?: string
-    /** 图标大小（像素） */
+    style?: string | Record<string, any>
     size?: number
-    /** 自定义类名 */
     class?: string
   }>
 
   input: WithRestProps<{
-    /** 占位文本 */
     placeholder?: string
-    /** 输入框尺寸 */
     size?: 'small' | 'default' | 'large'
-    /** 是否可清空 */
     clearable?: boolean
+    maxlength?: number
+    showWordLimit?: boolean
+    disabled?: boolean
+    // 事件
+    onChange?: (val: string, row: any, col: any) => void
+    onBlur?: (e: FocusEvent, row: any, col: any) => void
+    onFocus?: (e: FocusEvent, row: any, col: any) => void
+    onInput?: (val: string, row: any, col: any) => void
+    onClear?: (row: any, col: any) => void
+    onEnter?: (e: KeyboardEvent, row: any, col: any) => void
   }>
 
   'input-number': WithRestProps<{
-    /** 最小值 */
     min?: number
-    /** 最大值 */
     max?: number
-    /** 步长 */
     step?: number
-    /** 精度 */
     precision?: number
-    /** 输入框尺寸 */
     size?: 'small' | 'default' | 'large'
-    /** 是否显示增减按钮 */
     controls?: boolean
+    disabled?: boolean
+    // 事件
+    onChange?: (val: number | undefined, oldVal: number | undefined, row: any, col: any) => void
+    onBlur?: (e: FocusEvent, row: any, col: any) => void
+    onFocus?: (e: FocusEvent, row: any, col: any) => void
+    onEnter?: (e: KeyboardEvent, row: any, col: any) => void
   }>
 
   select: WithRestProps<{
-    /** 选项配置 */
     options: Array<{
       label: string
       value: string | number
+      disabled?: boolean
     }>
-    /** 占位文本 */
     placeholder?: string
-    /** 选择器尺寸 */
     size?: 'small' | 'default' | 'large'
-    /** 是否可清空 */
     clearable?: boolean
+    filterable?: boolean
+    multiple?: boolean
+    disabled?: boolean
+    // 事件
+    onChange?: (val: any, row: any, col: any) => void
+    onBlur?: (e: FocusEvent, row: any, col: any) => void
+    onFocus?: (e: FocusEvent, row: any, col: any) => void
+    onVisibleChange?: (visible: boolean, row: any, col: any) => void
+    onClear?: (row: any, col: any) => void
   }>
 
   button: WithRestProps<ButtonProps & {
-    /** 按钮文本 */
     label?: string
-    /** 自定义样式 */
-    style?: string
-    /** 自定义类名 */
+    style?: string | Record<string, any>
     class?: string
+    onClick?: (e: Event, row: any, col: any) => void
   }>
 
   link: WithRestProps<{
-    /** 链接文本 */
     label?: string
-    /** 链接地址 */
-    href: string
-    /** 是否新窗口打开 */
+    href?: string
     blank?: boolean
-    /** 自定义样式 */
-    style?: string
-    /** 自定义类名 */
+    style?: string | Record<string, any>
     class?: string
   }>
+
+  slot: {}
 }
-
-/* ======================= 列类型 ======================= */
-
-export type ColumnType =
-  | 'default'
-  | 'selection'
-  | 'index'
-  | 'operation'
 
 /* ======================= ColumnConfig ======================= */
-export interface BaseColumn<R extends DefaultRow> {
-  key: keyof R & string
+
+/** 列配置基础接口 */
+export interface BaseColumnConfig<R extends DefaultRow = any> {
+  /** 字段名 */
+  key: string
+  /** 列类型 */
+  type?: ColumnType | string
+  /** 列标题 */
   label?: string
+  /** 是否显示 */
   visible?: boolean
+  /** 是否在列控制中显示 */
   inControl?: boolean
+  /** el-table-column 原生属性 */
   columnProps?: Partial<TableColumnCtx<R>>
-  render?: RendererName | string  // 支持自定义渲染器名称
-  slot?: string           // 插槽名称，默认用 key
-  renderProps?: Partial<RendererPropsMap[keyof RendererPropsMap]>
-  buttons?: ButtonConfig<R>[]   // operation 列专用
-  maxbtn?: number               // operation 列专用
+  /** 插槽名称（type 为 slot 时使用，默认用 key） */
+  slot?: string
+  /** 渲染器/组件属性 */
+  props?: Record<string, any>
 }
 
-export interface SelectionColumn<R extends DefaultRow> extends BaseColumn<R> { type: 'selection' }
-export interface IndexColumn<R extends DefaultRow> extends BaseColumn<R> { type: 'index' }
-export interface OperationColumn<R extends DefaultRow> extends BaseColumn<R> { type: 'operation'; buttons: ButtonConfig<R>[] }
-export interface DataColumn<R extends DefaultRow> extends BaseColumn<R> {
-  type?: 'default'
+/** Selection 列 */
+export interface SelectionColumn<R extends DefaultRow = any> extends BaseColumnConfig<R> {
+  type: 'selection'
+}
+
+/** Index 列 */
+export interface IndexColumn<R extends DefaultRow = any> extends BaseColumnConfig<R> {
+  type: 'index'
+}
+
+/** Operation 列 */
+export interface OperationColumn<R extends DefaultRow = any> extends BaseColumnConfig<R> {
+  type: 'operation'
+  buttons: ButtonConfig<R>[]
+  /** 最大显示按钮数 */
+  maxbtn?: number
+}
+
+/** 数据列 */
+export interface DataColumn<R extends DefaultRow = any> extends BaseColumnConfig<R> {
+  type?: Exclude<ColumnType, 'selection' | 'index' | 'operation'> | string
   /**
-   * 格式化函数
-   * @param value 单元格值
-   * @param row 当前行数据
-   * @param index 当前行索引（从0开始）
-   * @returns 格式化后的显示内容
+   * 格式化函数（type 为 formatter 时使用）
    */
   formatter?: (value: any, row: R, index: number) => any
 }
 
+/** 列配置联合类型 */
 export type ColumnConfig<R extends DefaultRow = any> =
   | SelectionColumn<R>
   | IndexColumn<R>
@@ -286,6 +309,27 @@ export interface SmartTableEmits<R extends DefaultRow = any> {
   (e: 'cellBlur', row: R, col: ColumnConfig<R>): void
   /** 单元格回车 */
   (e: 'cellEnter', row: R, col: ColumnConfig<R>): void
-  /** 单元格点击（button 渲染器） */
+  /** 单元格点击（button 类型） */
   (e: 'cellClick', row: R, col: ColumnConfig<R>): void
+}
+
+/* ======================= 辅助类型 ======================= */
+
+/** 特殊列类型 */
+export type SpecialColumnType = 'selection' | 'index' | 'operation'
+
+/** 判断是否为特殊列 */
+export function isSpecialColumn(type?: string): type is SpecialColumnType {
+  return type === 'selection' || type === 'index' || type === 'operation'
+}
+
+/** 判断是否为渲染器类型 */
+export function isRendererType(type?: string): boolean {
+  if (!type) return false
+  return !isSpecialColumn(type)
+}
+
+/** 判断是否为 operation 列 */
+export function isOperationColumn<R extends DefaultRow = any>(col: ColumnConfig<R>): col is OperationColumn<R> {
+  return col.type === 'operation'
 }

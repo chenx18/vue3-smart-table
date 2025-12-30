@@ -71,7 +71,11 @@
             <li><strong>input-number</strong>: 数字输入框，支持 min/max 配置</li>
             <li><strong>select</strong>: 下拉选择，支持 options 配置</li>
           </ul>
-          <p class="text-gray-500">所有可编辑单元格支持 v-model，修改后触发 cellChange 事件</p>
+          <p class="text-gray-500">支持两种事件方式：</p>
+          <ul>
+            <li><code>props.onChange</code> - 列级回调，适合 columns 抽离到 ts 文件</li>
+            <li><code>@cell-change</code> - 组件级事件，统一处理</li>
+          </ul>
         </el-collapse-item>
 
         <el-collapse-item title="4. 自定义渲染器" name="4">
@@ -89,14 +93,14 @@ const statusRenderer = createFunctionalRenderer((props) => {
 
 getRendererManager().register('status-badge', statusRenderer)
           </pre>
-          <p>在列配置中使用：<code>{ render: 'status-badge' }</code></p>
+          <p>在列配置中使用：<code>{ type: 'status-badge', key: 'status' }</code></p>
         </el-collapse-item>
 
         <el-collapse-item title="5. 插槽自定义" name="5">
           <p>对于复杂场景，可以使用插槽完全自定义列内容：</p>
           <pre class="bg-gray-100 p-2 rounded">
 // 列配置
-{ key: 'attachments', render: 'slot', slot: 'attachments' }
+{ type: 'slot', key: 'attachments', slot: 'attachments' }
 
 // 模板
 &lt;template #attachments="{ row }"&gt;
@@ -138,7 +142,7 @@ getRendererManager().register('status-badge', statusRenderer)
 import { reactive, ref } from 'vue'
 import { ElMessageBox } from 'element-plus'
 import { SmartTable } from '../src/index'
-import { getRendererManager, createFunctionalRenderer, setSmartTableConfig } from '../src/index'
+import { getRendererManager, createFunctionalRenderer } from '../src/index'
 import { h } from 'vue'
 import { Download } from '@element-plus/icons-vue'
 
@@ -226,14 +230,14 @@ const buttonConfigs = [
     label: '复制',
     type: 'info',
     action: (row: any) => addLog('info', '复制', `复制用户: ${row.name}`),
-    visible: (row: any) => row.name === 'admin'
+    visible: (row: any) => row.role === 'admin'  // 仅管理员可见
   },
   {
     permission: 'detail',
     label: '详情',
     type: 'info',
-    action: (row: any) => addLog('info', '复制', `复制用户: ${row.name}`),
-    visible: (row: any) => row.name === 'admin'
+    action: (row: any) => addLog('info', '详情', `查看详情: ${row.name}`),
+    visible: (row: any) => row.status === 1  // 仅启用状态可见
   },
 ]
 
@@ -252,55 +256,55 @@ const columns = ref([
     columnProps: { width: 80, fixed: 'left' }
   },
   {
+    type: 'html',
     key: 'name',
     label: '姓名',
     visible: true,
-    render: 'html',
     columnProps: { minWidth: 120, sortable: true }
   },
   {
+    type: 'copy',
     key: 'email',
     label: '邮箱',
     visible: true,
-    render: 'copy',
     columnProps: { minWidth: 200, sortable: true },
-    renderProps: {
+    props: {
       copyTitle: '复制邮箱',
       successText: '邮箱已复制到剪贴板',
       iconColor: '#409EFF'
     }
   },
   {
+    type: 'slot',
     key: 'status',
     label: '状态切换',
     visible: true,
-    render: 'slot',
     columnProps: { minWidth: 100, sortable: true }
   },
   {
+    type: 'dict',
     key: 'status',
     label: '状态(Dict)',
     visible: true,
-    render: 'dict',
     columnProps: { minWidth: 100, sortable: true },
-    renderProps: {
+    props: {
       options: statusOptions
     }
   },
   {
+    type: 'status-badge',
     key: 'status',
     label: '状态(自定义渲染器)',
     visible: true,
-    render: 'status-badge',
     columnProps: { minWidth: 150 }
   },
   {
+    type: 'map',
     key: 'role',
     label: '角色(Map)',
     visible: true,
-    render: 'map',
     columnProps: { minWidth: 100 },
-    renderProps: {
+    props: {
       options: {
         admin: '管理员',
         user: '普通用户',
@@ -309,87 +313,115 @@ const columns = ref([
     }
   },
   {
+    type: 'icon',
+    key: 'icon',
+    label: '图标(Icon)',
+    visible: true,
+    columnProps: { minWidth: 80 },
+    props: {
+      size: 24
+    }
+  },
+  {
+    type: 'formatter',
     key: 'price',
     label: '价格(Formatter)',
     visible: true,
-    render: 'formatter',
-    columnProps: { minWidth: 180 },
-    formatter: (val: number, row, index) => `val:${val}, row:${row}, index: ${index},  `
+    columnProps: { minWidth: 120 },
+    formatter: (val: number) => val != null ? `¥${Number(val).toFixed(2)}` : '-'
   },
   {
+    type: 'img',
     key: 'avatar',
     label: '头像(图片)',
     visible: true,
-    render: 'img',
     columnProps: { minWidth: 100 },
-    renderProps: {
+    props: {
       width: '60px',
       height: '60px',
       fit: 'cover'
     }
   },
   {
+    type: 'img',
     key: 'gallery',
     label: '相册(多图)',
     visible: true,
-    render: 'img',
     columnProps: { minWidth: 120 },
-    renderProps: {
+    props: {
       width: '80px',
       height: '80px'
     }
   },
   {
+    type: 'link',
     key: 'website',
     label: '网站',
     visible: true,
-    render: 'link',
     columnProps: { minWidth: 120 },
-    renderProps: {
+    props: {
       label: '访问网站',
       href: 'https://github.com',
       blank: true
     }
   },
   {
+    type: 'select',
     key: 'selectValue',
     label: '可选值',
     visible: true,
-    render: 'select',
     columnProps: { minWidth: 150 },
-    renderProps: {
+    props: {
       options: [
         { label: '选项1', value: 1 },
         { label: '选项2', value: 2 },
         { label: '选项3', value: 3 }
-      ]
+      ],
+      // props 事件回调示例
+      onChange: (val: any, row: any, col: any) => {
+        console.log(`[props.onChange] ${col.key}: ${val}`, row)
+      }
     }
   },
   {
+    type: 'input-number',
     key: 'orderNum',
     label: '序号(可编辑)',
     visible: true,
-    render: 'input-number',
     columnProps: { minWidth: 150 },
-    renderProps: {
+    props: {
       min: 0,
-      max: 100
+      max: 100,
+      // props 事件回调示例
+      onChange: (val: number | undefined, oldVal: number | undefined, row: any) => {
+        console.log(`[props.onChange] orderNum: ${oldVal} -> ${val}`, row)
+      }
     }
   },
   {
+    type: 'input',
     key: 'username',
     label: '用户名(可编辑)',
     visible: true,
-    render: 'input',
-    columnProps: { minWidth: 150 }
+    columnProps: { minWidth: 150 },
+    props: {
+      placeholder: '请输入用户名',
+      // props 事件回调示例
+      onChange: (val: string, row: any, col: any) => {
+        console.log(`[props.onChange] ${col.key}: ${val}`, row)
+      },
+      onEnter: (e: KeyboardEvent, row: any, col: any) => {
+        console.log(`[props.onEnter] ${col.key} 回车`, row)
+      }
+    }
   },
   {
+    type: 'button',
     key: 'action',
     label: '操作(按钮)',
     visible: true,
-    render: 'button',
     columnProps: { minWidth: 100 },
-    renderProps: {
+    props: {
       label: '点击我',
       type: 'primary'
     }
@@ -406,10 +438,10 @@ const columns = ref([
     }
   },
   {
+    type: 'slot',
     key: 'attachments',
     label: '附件(插槽)',
     visible: true,
-    render: 'slot',
     slot: 'attachments',
     columnProps: { minWidth: 150 }
   }
@@ -428,6 +460,7 @@ const rendererList = [
   { name: 'dict', desc: '字典映射' },
   { name: 'map', desc: '键值对映射' },
   { name: 'formatter', desc: '自定义格式化' },
+  { name: 'icon', desc: '图标渲染' },
   { name: 'slot', desc: '插槽自定义' },
 ]
 
@@ -449,6 +482,7 @@ const tableData = reactive([
     selectValue: 1,
     orderNum: 10,
     username: 'zhangsan001',
+    icon: 'https://element-plus.org/images/element-plus-logo.svg',
     attachments: [
       {
         id: 1,
@@ -470,6 +504,7 @@ const tableData = reactive([
     selectValue: 2,
     orderNum: 20,
     username: 'lisi002',
+    icon: 'el-icon-user',
     attachments: []
   },
   {
@@ -485,6 +520,7 @@ const tableData = reactive([
     selectValue: 3,
     orderNum: 30,
     username: 'wangwu003',
+    icon: 'https://vuejs.org/images/logo.png',
     attachments: [
       {
         id: 2,

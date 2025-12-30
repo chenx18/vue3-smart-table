@@ -6,101 +6,100 @@
     class="smart_table"
     v-loading="loading">
 
-    <!-- ========== selection 列 ========== -->
-    <el-table-column
-      v-for="(col, idx) in selectionColumns"
-      :key="`selection-${idx}`"
-      type="selection"
-      v-bind="col.columnProps"
-    />
+    <template v-for="(col, idx) in visibleColumns" :key="getColumnKey(col, idx)">
+      <!-- ========== selection 列 ========== -->
+      <el-table-column
+        v-if="col.type === 'selection'"
+        type="selection"
+        v-bind="col.columnProps"
+      />
 
-    <!-- ========== index 列 ========== -->
-    <el-table-column
-      v-for="(col, idx) in indexColumns"
-      :key="`index-${idx}`"
-      type="index"
-      :label="col.label || '#'"
-      align="center"
-      v-bind="col.columnProps"
-    >
-      <template #default="{ $index }">
-        {{ computeIndex($index) }}
-      </template>
-    </el-table-column>
-
-    <!-- ========== operation 列 ========== -->
-    <el-table-column
-      v-for="col in getOperationColumns()"
-      :key="col.key"
-      :label="col.label || '操作'"
-      align="center"
-      v-bind="{
-        ...col.columnProps,
-        width: getOperationWidth(col)
-      }"
-    >
-      <template #default="{ row }">
-        <el-button
-          v-for="btn in getVisibleButtons(col, row)"
-          :key="btn.label"
-          :type="btn.type || 'primary'"
-          link
-          @click="btn.action(row)"
-        >
-          {{ btn.label }}
-        </el-button>
-      </template>
-    </el-table-column>
-
-    <!-- ========== 普通数据列 ========== -->
-    <el-table-column
-      v-for="(col, idx) in dataColumns"
-      :key="`${col.key}-${idx}`"
-      :label="col.label"
-      align="center"
-      v-bind="col.columnProps || {}"
-    >
-      <template #default="scope">
-        <!-- 父组件插槽优先 -->
-        <template v-if="col.render === 'slot'">
-          <!-- 跳过 el-table 的预渲染（$index === -1 时是假数据） -->
-          <slot v-if="scope.$index >= 0" :name="col?.slot || col.key" v-bind="scope" />
+      <!-- ========== index 列 ========== -->
+      <el-table-column
+        v-else-if="col.type === 'index'"
+        type="index"
+        :label="col.label || '#'"
+        align="center"
+        v-bind="col.columnProps"
+      >
+        <template #default="{ $index }">
+          {{ computeIndex($index) }}
         </template>
+      </el-table-column>
 
-        <!-- renderer -->
-        <component
-          v-else-if="col.render && renderer[col.render]"
-          :is="renderer[col.render]"
-          :row="scope.row"
-          :col="col"
-          :index="scope.$index"
-          :onCellChange="handleCellChange"
-          :onCellBlur="handleCellBlur"
-          :onCellEnter="handleCellEnter"
-          :onClick="handleCellClick"
-        />
-        <!-- 默认文本 -->
-        <span v-else
-          :style="col.renderProps?.style || ''"
-          :class="col.renderProps?.class || ''"
-          :title="getValueByPath(scope.row, col.key)">
-          {{ getValueByPath(scope.row, col.key) }}
-        </span>
-      </template>
-    </el-table-column>
+      <!-- ========== operation 列 ========== -->
+      <el-table-column
+        v-else-if="col.type === 'operation' && isOperationVisible(col)"
+        :label="col.label || '操作'"
+        align="center"
+        v-bind="{
+          ...col.columnProps,
+          width: getOperationWidth(col)
+        }"
+      >
+        <template #default="{ row }">
+          <el-button
+            v-for="btn in getVisibleButtons(col, row)"
+            :key="btn.label"
+            :type="btn.type || 'primary'"
+            link
+            @click="btn.action(row)"
+          >
+            {{ btn.label }}
+          </el-button>
+        </template>
+      </el-table-column>
+
+      <!-- ========== 数据列 ========== -->
+      <el-table-column
+        v-else
+        :label="col.label"
+        align="center"
+        v-bind="col.columnProps || {}"
+      >
+        <template #default="scope">
+          <!-- slot 类型 -->
+          <template v-if="col.type === 'slot'">
+            <slot v-if="scope.$index >= 0" :name="col.slot || col.key" v-bind="scope" />
+          </template>
+
+          <!-- 渲染器类型 -->
+          <component
+            v-else-if="col.type && renderer[col.type]"
+            :is="renderer[col.type]"
+            :row="scope.row"
+            :col="col"
+            :index="scope.$index"
+            :onCellChange="handleCellChange"
+            :onCellBlur="handleCellBlur"
+            :onCellEnter="handleCellEnter"
+            :onClick="handleCellClick"
+          />
+
+          <!-- 默认文本 -->
+          <span v-else
+            :style="col.props?.style || ''"
+            :class="col.props?.class || ''"
+            :title="getValueByPath(scope.row, col.key)">
+            {{ getValueByPath(scope.row, col.key) }}
+          </span>
+        </template>
+      </el-table-column>
+    </template>
   </el-table>
 </template>
 
 <script setup lang="ts" name="SmartTable">
   import { ref, watch, computed } from 'vue'
-  import type { ColumnConfig, SmartTableProps, SmartTableEmits } from './types'
+  import type { ColumnConfig, SmartTableProps, SmartTableEmits, OperationColumn } from './types'
+  import { isSpecialColumn, isOperationColumn } from './types'
   import { useTableColumns } from "./hooks/useTableColumns"
   import { useOperationColumn } from './hooks/useOperationColumn'
   import { getRendererManager } from './renderer'
   import { getConfigManager } from './config'
   import { getValueByPath } from './utils/path'
 
-  // Props 定义 - 与 SmartForm 风格一致
+  // Props 定义
   const props = withDefaults(defineProps<SmartTableProps>(), {
     data: () => [],
     columns: () => [],
@@ -134,26 +133,29 @@
     { deep: true, immediate: true },
   )
 
-  // ------------------ 列分类 ------------------
-  const selectionColumns = computed(() =>
-    cachedColumns.value.filter(col => col.type === 'selection')
+  // ------------------ 列处理 ------------------
+  
+  // 可见列（按用户配置顺序）
+  const visibleColumns = computed(() =>
+    cachedColumns.value.filter(col => {
+      // 特殊列始终显示
+      if (isSpecialColumn(col.type)) return true
+      // 数据列根据 visible 控制
+      return col.visible !== false
+    })
   )
 
-  const indexColumns = computed(() =>
-    cachedColumns.value.filter(col => col.type === 'index')
-  )
+  // 生成列的唯一 key
+  const getColumnKey = (col: ColumnConfig, idx: number) => {
+    if (col.type === 'selection') return `selection-${idx}`
+    if (col.type === 'index') return `index-${idx}`
+    if (col.type === 'operation') return `operation-${col.key}-${idx}`
+    return `${col.key}-${idx}`
+  }
 
+  // operation 列集合（用于 hook 管理）
   const operationColumns = computed(() =>
     cachedColumns.value.filter(col => col.type === 'operation')
-  )
-
-  const dataColumns = computed(() =>
-    cachedColumns.value.filter(col => {
-      if (col.type === 'selection' || col.type === 'index') return false
-      if (col.type === 'operation') return false
-      if (col.visible === false) return false
-      return true
-    })
   )
 
   // ------------------ index 列序号计算 ------------------
@@ -207,7 +209,7 @@
     return hook.getMaxOptWidth(props.data)
   }
 
-  const getVisibleButtons = (col: ColumnConfig, row: any) => {
+  const getVisibleButtons = (col: OperationColumn, row: any) => {
     const hook = getOperationColumnHook(col)
     if (!hook) return []
 
@@ -217,18 +219,19 @@
     return hook.getVisibleButtons(row)
   }
 
-  const getOperationColumns = () => {
-    return operationColumns.value.filter(col => {
-      const hook = getOperationColumnHook(col)
-      if (!hook) return false
+  // 判断 operation 列是否应该显示
+  const isOperationVisible = (col: ColumnConfig) => {
+    if (!isOperationColumn(col)) return false
+    
+    const hook = getOperationColumnHook(col)
+    if (!hook) return false
 
-      const buttons = col.buttons || []
-      if (!buttons.length) return false
+    const buttons = col.buttons || []
+    if (!buttons.length) return false
 
-      if (!props.data?.length) return hook.hasAnyButton.value
+    if (!props.data?.length) return hook.hasAnyButton.value
 
-      return hook.hasAnyVisibleButton(props.data)
-    })
+    return hook.hasAnyVisibleButton(props.data)
   }
 
   // ------------------ 事件封装 ------------------

@@ -1,6 +1,6 @@
 /**
- * 内置渲染器集合
- * 可以按需引入或批量注册
+ * 内置渲染器集�?
+ * 可以按需引入或批量注�?
  */
 import { h } from 'vue'
 import { ElButton, ElTag, ElImage, ElMessage } from 'element-plus'
@@ -20,49 +20,84 @@ const inputNumber = wrapSFCComponent(EditableNumber)
 const select = wrapSFCComponent(EditableSelect)
 
 /**
- * button 渲染器
+ * 提取 props 中的事件（on 开头的属性）
+ */
+const extractEvents = (rp: Record<string, any>) => {
+  const events: Record<string, any> = {}
+  const props: Record<string, any> = {}
+  
+  Object.keys(rp).forEach(key => {
+    if (key.startsWith('on') && typeof rp[key] === 'function') {
+      events[key] = rp[key]
+    } else {
+      props[key] = rp[key]
+    }
+  })
+  
+  return { events, props }
+}
+
+/**
+ * button 渲染�?
  */
 const button = createFunctionalRenderer((props) => {
-  const rp = props.col.renderProps || {}
+  const rp = props.col.props || {}
   const val = getValueByPath(props.row, props.col.key)
+  const { events, props: restProps } = extractEvents(rp)
+  
   return h(ElButton as any, {
-    type: rp.type || 'primary',
-    ...rp,
-    onClick: () => props.onClick?.(props.row, props.col)
+    type: 'primary',
+    ...restProps,
+    ...events,
+    onClick: (e: Event) => {
+      props.onClick?.(props.row, props.col)
+      // 支持用户自定�?onClick
+      rp.onClick?.(e, props.row, props.col)
+    }
   }, () => rp.label || val)
 })
 
 /**
- * link 渲染器
+ * link 渲染�?
  */
 const link = createFunctionalRenderer((props) => {
-  const rp = props.col.renderProps || {}
+  const rp = props.col.props || {}
   const val = getValueByPath(props.row, props.col.key)
+  const { href, blank, label, ...restProps } = rp
+  
   return h('a', {
-    href: rp.href || '#',
-    target: rp.blank ? '_blank' : '_self',
-    style: rp.style || 'color:#409EFF;cursor:pointer;',
-  }, rp.label || val)
+    href: href || val || '#',
+    target: blank ? '_blank' : '_self',
+    rel: blank ? 'noopener noreferrer' : undefined,
+    style: 'color:#409EFF;cursor:pointer;text-decoration:none;',
+    ...restProps,
+  }, label || val)
 })
 
 /**
- * html 渲染器
+ * html 渲染�?
  */
 const html = createFunctionalRenderer((props) => {
   const val = getValueByPath(props.row, props.col.key)
+  const rp = props.col?.props || {}
+  const { style, class: className, ...restProps } = rp
+  
   return h('div', {
-    class: 'line-clamp-2',
+    class: className || 'line-clamp-2',
+    style,
     innerHTML: val ?? '',
-    ...(props.col?.renderProps || {})
+    ...restProps
   })
 })
 
 /**
- * copy 渲染器
+ * copy 渲染�?
  */
 const copy = createFunctionalRenderer((props) => {
   const val = getValueByPath(props.row, props.col.key) ?? ''
-  const rp = props.col.renderProps ?? {}
+  const rp = props.col.props ?? {}
+  const { iconColor, copyTitle, successText, errorText, lineClamp, textStyles, textClass, ...restProps } = rp
+  
   const butStyle = {
     'position': 'absolute',
     'right': '-5px',
@@ -71,39 +106,41 @@ const copy = createFunctionalRenderer((props) => {
     'cursor': 'pointer',
     'display': 'none',
     'font-size': '12px',
-    'color': rp.iconColor || '#409EFF',
+    'color': iconColor || '#409EFF',
     'user-select': 'none'
   }
-  const testStyle = {
+  const textStyleObj = {
     'padding-right': '10px',
     'display': '-webkit-box',
     '-webkit-box-orient': 'vertical',
-    '-webkit-line-clamp': rp.lineClamp ?? 2,
+    '-webkit-line-clamp': lineClamp ?? 2,
     'overflow': 'hidden',
-    ...rp.textStyles
+    ...textStyles
   }
+  
   return h('div', {
       class: 'st_copy_wrapper',
-      style: 'width: 100%; position: relative; display: inline-block;'
+      style: 'width: 100%; position: relative; display: inline-block;',
+      ...restProps
     },
     [
       h('span', {
-        class: `st_copy_text ${rp.textClass ?? ''}`,
-        style: testStyle,
+        class: `st_copy_text ${textClass ?? ''}`,
+        style: textStyleObj,
         title: val
       }, val),
       val && h('span', {
         class: 'st_copy_btn',
         style: butStyle,
-        title: rp.copyTitle || '复制',
+        title: copyTitle || '复制',
         onClick: () => {
           if (!val) return
           try {
             if (navigator.clipboard && navigator.clipboard.writeText) {
               navigator.clipboard.writeText(val).then(() => {
-                ElMessage.success(rp.successText ?? '复制成功')
+                ElMessage.success(successText ?? '复制成功')
               }).catch(() => {
-                ElMessage.error(rp.errorText ?? '复制失败')
+                ElMessage.error(errorText ?? '复制失败')
               })
             } else {
               const textarea = document.createElement('textarea')
@@ -116,13 +153,13 @@ const copy = createFunctionalRenderer((props) => {
               document.body.removeChild(textarea)
 
               if (successful) {
-                ElMessage.success(rp.successText ?? '复制成功')
+                ElMessage.success(successText ?? '复制成功')
               } else {
-                ElMessage.error(rp.errorText ?? '复制失败')
+                ElMessage.error(errorText ?? '复制失败')
               }
             }
           } catch (err) {
-            ElMessage.error(rp.errorText ?? '复制失败')
+            ElMessage.error(errorText ?? '复制失败')
           }
         }
       }, [h(DocumentCopy, {
@@ -133,11 +170,12 @@ const copy = createFunctionalRenderer((props) => {
 })
 
 /**
- * img 渲染器
+ * img 渲染�?
  */
 const img = createFunctionalRenderer((props) => {
   const val = getValueByPath(props.row, props.col.key) ?? ''
-  const rp = props.col?.renderProps || {}
+  const rp = props.col?.props || {}
+  const { width, height, fit, previewSrcList, placeholder, style, ...restProps } = rp
 
   const getImageList = () => {
     if (!val) return []
@@ -150,24 +188,28 @@ const img = createFunctionalRenderer((props) => {
   const imageList = getImageList()
 
   if (imageList.length === 0) {
-    return rp.placeholder || ''
+    return placeholder || ''
   }
 
   const defaultStyle = {
-    width: rp.width || '80px',
-    height: rp.height || '80px',
+    width: width || '80px',
+    height: height || '80px',
     marginRight: imageList.length > 1 ? '4px' : '0',
-    ...(rp.style || {})
+    ...(typeof style === 'object' ? style : {})
+  }
+
+  const imageProps = {
+    previewSrcList: previewSrcList || imageList,
+    previewTeleported: true, 
+    fit: fit || 'contain',
+    style: defaultStyle,
+    ...restProps
   }
 
   if (imageList.length === 1) {
     return h(ElImage, {
       src: imageList[0],
-      previewSrcList: rp.previewSrcList || imageList,
-      previewTeleported: true, 
-      fit: rp.fit || 'contain',
-      style: defaultStyle,
-      ...rp
+      ...imageProps
     })
   }
 
@@ -179,11 +221,7 @@ const img = createFunctionalRenderer((props) => {
     [
       h(ElImage, {
         src: imageList[0],
-        previewSrcList: rp.previewSrcList || imageList,
-        previewTeleported: true, 
-        fit: rp.fit || 'contain',
-        style: defaultStyle,
-        ...rp
+        ...imageProps
       }),
       imageList.length > 1 && h('span', {
         class: 'st_img_total',
@@ -195,24 +233,31 @@ const img = createFunctionalRenderer((props) => {
 })
 
 /**
- * dict 渲染器
+ * dict 渲染�?
  */
 const dict = createFunctionalRenderer((props) => {
   const val = getValueByPath(props.row, props.col.key) ?? ''
-  const rp = props.col.renderProps || {}
-  const options = rp.options ?? []
-  const showValue = rp.showValue ?? false
+  const rp = props.col.props || {}
+  const { options = [], showValue = false, ...restProps } = rp
 
   if (val === null || val === undefined || val === '') return ''
 
   const values = Array.isArray(val) ? val.map(String) : [String(val)]
   const matchedOptions = options.filter((opt: any) => values.includes(String(opt.value)))
-  const unmatched = values.filter(v => !options.some((opt: any) => String(opt.value) === v))
+  const unmatched = values.filter((v: string) => !options.some((opt: any) => String(opt.value) === v))
 
-  const children = matchedOptions.map((item: any, _index: number) => {
+  const children = matchedOptions.map((item: any) => {
+    const { listClass, cssClass, tagProps, ...itemRest } = item
     return h(
       ElTag,
-      { key: item.value, type: item.listClass, class: item.cssClass, disableTransitions: true },
+      { 
+        key: item.value, 
+        type: listClass, 
+        class: cssClass, 
+        disableTransitions: true,
+        ...restProps,
+        ...tagProps
+      },
       { default: () => item.label + ' ' }
     )
   })
@@ -221,20 +266,23 @@ const dict = createFunctionalRenderer((props) => {
     children.push(h('span', {}, unmatched.join(' ')))
   }
 
-  return h('div', {}, children)
+  return h('div', { style: 'display: inline-flex; gap: 4px; flex-wrap: wrap;' }, children)
 })
 
 /**
- * map 渲染器
+ * map 渲染�?
  */
 const map = createFunctionalRenderer((props) => {
   const val = getValueByPath(props.row, props.col.key) ?? ''
-  const options = (props.col.renderProps?.options ?? {}) as Record<string, any>
-  return val != null ? options[val] ?? '' : ''
+  const rp = props.col.props || {}
+  const { options = {}, ...restProps } = rp
+  const mappedVal = val != null ? options[val] ?? '' : ''
+  
+  return h('span', { ...restProps }, mappedVal)
 })
 
 /**
- * formatter 渲染器
+ * formatter 渲染�?
  */
 export function isDataColumn(
   col: ColumnConfig
@@ -245,20 +293,28 @@ export function isDataColumn(
 const formatter = createFunctionalRenderer((props) => {
   const { col, row, index } = props
   const val = getValueByPath(props.row, props.col.key) ?? ''
+  const rp = props.col.props || {}
+  
+  let content = val
   if (isDataColumn(col)) {
-    // formatter 函数签名: (value, row, index) => string
-    return col.formatter?.(val, row, index)
+    content = col.formatter?.(val, row, index) ?? val
   }
-  return val ?? ''
+  
+  return h('span', { ...rp }, content)
 })
 
 /**
- * icon 渲染器
+ * icon 渲染�?
  */
 const icon = createFunctionalRenderer((props) => {
   const val = getValueByPath(props.row, props.col.key) ?? ''
-  const rp = props.col.renderProps || {}
+  const rp = props.col.props || {}
+  const { style, size, class: className, ...restProps } = rp
+  
   if (!val) return ''
+  
+  const iconSize = size ? `${size}px` : '20px'
+  
   // 判断网络图片
   if (/^https?:\/\//.test(val)) {
     return h(ElImage, {
@@ -266,23 +322,34 @@ const icon = createFunctionalRenderer((props) => {
       previewSrcList: [val],
       previewTeleported: true, 
       fit: 'contain',
-      style: 'width:40px;height:40px',
-      ...rp
+      style: { width: '40px', height: '40px', ...(typeof style === 'object' ? style : {}) },
+      ...restProps
     })
   }
+  
   // 判断 svg 源码
   if (/^\s*<svg[\s\S]*<\/svg>\s*$/.test(val)) {
     return h('div', {
       innerHTML: val,
-      style: `width:40px;height:40px;display:inline-block;${rp.style || ''}`,
-      ...rp
+      class: className,
+      style: { 
+        width: '40px', 
+        height: '40px', 
+        display: 'inline-block',
+        ...(typeof style === 'object' ? style : {})
+      },
+      ...restProps
     })
   }
+  
   // 默认当作 iconfont
   return h('i', {
-    class: val,
-    style: `font-size:20px;${rp.style || ''}`,
-    ...rp
+    class: [val, className].filter(Boolean).join(' '),
+    style: { 
+      fontSize: iconSize,
+      ...(typeof style === 'object' ? style : {})
+    },
+    ...restProps
   })
 })
 
@@ -312,8 +379,8 @@ export function registerBuiltInRenderers(registry: { registerMultiple: (renderer
 }
 
 /**
- * 创建默认渲染器集合（兼容旧 API）
- * @deprecated 建议使用插件化架构
+ * 创建默认渲染器集合（兼容�?API�?
+ * @deprecated 建议使用插件化架�?
  */
 export function createRenderer() {
   return builtInRenderers
