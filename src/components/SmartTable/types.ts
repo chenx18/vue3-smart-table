@@ -44,6 +44,18 @@ export interface SmartTableConfig {
   defaultColumnProps?: Record<string, any>
 }
 
+/* ======================= 分页配置 ======================= */
+
+/** 分页配置接口 */
+export interface PaginationConfig {
+  /** 当前页码 */
+  page?: number
+  /** 每页条数 */
+  size?: number
+  /** 总条数 */
+  total?: number
+}
+
 /* ======================= 操作列按钮 ======================= */
 
 export interface ButtonConfig<R = any> {
@@ -212,12 +224,11 @@ export interface BaseColumn<R extends DefaultRow> {
   visible?: boolean
   inControl?: boolean
   columnProps?: Partial<TableColumnCtx<R>>
-  render?: RendererName   
+  render?: RendererName | string  // 支持自定义渲染器名称
   slot?: string           // 插槽名称，默认用 key
   renderProps?: Partial<RendererPropsMap[keyof RendererPropsMap]>
   buttons?: ButtonConfig<R>[]   // operation 列专用
   maxbtn?: number               // operation 列专用
-  __rows?: R[]                  // operation 列内部使用
 }
 
 export interface SelectionColumn<R extends DefaultRow> extends BaseColumn<R> { type: 'selection' }
@@ -240,3 +251,41 @@ export type ColumnConfig<R extends DefaultRow = any> =
   | IndexColumn<R>
   | OperationColumn<R>
   | DataColumn<R>
+
+/* ======================= 组件 Props ======================= */
+
+/**
+ * SmartTable 组件 Props 接口
+ */
+export interface SmartTableProps<R extends DefaultRow = any> {
+  /** 表格数据 */
+  data: R[]
+  /** 列配置 */
+  columns: ColumnConfig<R>[]
+  /** 行数据的唯一标识字段，默认 'id' */
+  rowKey?: string
+  /** 是否显示加载状态 */
+  loading?: boolean
+  /** 权限列表，用于操作列按钮权限控制 */
+  permissions?: string[]
+  /** 列配置缓存 key，用于持久化列显隐配置 */
+  cacheKey?: string
+  /** 分页配置，用于序号列计算 */
+  pagination?: PaginationConfig
+}
+
+/**
+ * SmartTable 组件 Emits 接口
+ */
+export interface SmartTableEmits<R extends DefaultRow = any> {
+  /** 列配置更新（v-model:columns） */
+  (e: 'update:columns', columns: ColumnConfig<R>[]): void
+  /** 单元格值变更 */
+  (e: 'cellChange', row: R, col: ColumnConfig<R>): void
+  /** 单元格失焦 */
+  (e: 'cellBlur', row: R, col: ColumnConfig<R>): void
+  /** 单元格回车 */
+  (e: 'cellEnter', row: R, col: ColumnConfig<R>): void
+  /** 单元格点击（button 渲染器） */
+  (e: 'cellClick', row: R, col: ColumnConfig<R>): void
+}

@@ -3,6 +3,7 @@
  */
 import type { SmartTableConfig } from './types'
 import { getRendererManager } from './renderer'
+import { registerBuiltInRenderers } from './renderers'
 
 /**
  * 默认配置
@@ -22,6 +23,23 @@ const defaultConfig: SmartTableConfig = {
  */
 class ConfigManager {
   private config: SmartTableConfig = { ...defaultConfig }
+  private _initialized = false
+
+  /**
+   * 是否已初始化
+   */
+  get initialized(): boolean {
+    return this._initialized
+  }
+
+  /**
+   * 初始化（注册内置渲染器）
+   */
+  init(): void {
+    if (this._initialized) return
+    registerBuiltInRenderers(getRendererManager())
+    this._initialized = true
+  }
 
   /**
    * 获取所有配置
@@ -104,6 +122,8 @@ export function createSmartTablePlugin(defaultOptions?: SmartTableConfig): Smart
   return {
     install(options?: SmartTableConfig) {
       const manager = getConfigManager()
+      // 初始化内置渲染器
+      manager.init()
       const config = { ...defaultOptions, ...options }
       if (config) {
         manager.setConfig(config)

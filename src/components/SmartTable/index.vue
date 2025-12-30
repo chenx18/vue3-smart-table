@@ -8,16 +8,16 @@
 
     <!-- ========== selection 列 ========== -->
     <el-table-column
-      v-for="col in selectionColumns"
-      key="selection"
+      v-for="(col, idx) in selectionColumns"
+      :key="`selection-${idx}`"
       type="selection"
       v-bind="col.columnProps"
     />
 
     <!-- ========== index 列 ========== -->
     <el-table-column
-      v-for="col in indexColumns"
-      key="index"
+      v-for="(col, idx) in indexColumns"
+      :key="`index-${idx}`"
       type="index"
       :label="col.label || '#'"
       align="center"
@@ -92,34 +92,29 @@
 </template>
 
 <script setup lang="ts" name="SmartTable">
-  import { PropType, ref, watch, computed } from 'vue'
-  import type { BaseColumn, ColumnConfig } from './types'
+  import { ref, watch, computed } from 'vue'
+  import type { ColumnConfig, SmartTableProps, SmartTableEmits } from './types'
   import { useTableColumns } from "./hooks/useTableColumns"
   import { useOperationColumn } from './hooks/useOperationColumn'
   import { getRendererManager } from './renderer'
-  import { registerBuiltInRenderers } from './renderers'
+  import { getConfigManager } from './config'
   import { getValueByPath } from './utils/path'
 
-  const props = defineProps({
-    data: { type: Array, default: () => [] },
-    columns: { type: Array, default: () => [] },
-    rowKey: { type: String, default: 'id' },
-    loading: { type: Boolean, default: false },
-    permissions: {
-      type: Array as PropType<string[]>,
-      default: () => []
-    },
-    cacheKey: String,
-    pagination: { type: Object, default: () => ({}) },
+  // Props 定义 - 与 SmartForm 风格一致
+  const props = withDefaults(defineProps<SmartTableProps>(), {
+    data: () => [],
+    columns: () => [],
+    rowKey: 'id',
+    loading: false,
+    permissions: () => [],
+    pagination: () => ({}),
   })
 
-  const emit = defineEmits([
-    'update:columns',
-    'cellChange',
-    'cellBlur',
-    'cellEnter',
-    'cellClick',
-  ])
+  // Emits 定义
+  const emit = defineEmits<SmartTableEmits>()
+
+  // ------------------ 初始化渲染器（仅首次） ------------------
+  getConfigManager().init()
 
   // ------------------ columns 处理 ------------------
   const { columns: cachedColumns } = useTableColumns(props.columns, {
@@ -127,32 +122,16 @@
   })
   
   // 标记是否已初始化，避免初始化时触发不必要的更新
-  let isInitialized = false
+  const isInitialized = ref(false)
   watch(
     cachedColumns,
     (val: ColumnConfig[]) => {
-      if (isInitialized) {
+      if (isInitialized.value) {
         emit("update:columns", val)
       }
-      isInitialized = true
+      isInitialized.value = true
     },
     { deep: true, immediate: true },
-  )
-
-  // ------------------ 将行数据传递给 operation 列 ------------------
-  watch(
-    () => props.data,
-    (newData) => {
-      if (!newData) return
-
-      // 为 operation 列注入 __rows，用于计算宽度
-      cachedColumns.value.forEach((col: ColumnConfig) => {
-        if (col.type === 'operation') {
-          col.__rows = newData
-        }
-      })
-    },
-    { deep: true, immediate: true }
   )
 
   // ------------------ 列分类 ------------------
@@ -184,9 +163,7 @@
     return page && size ? (page - 1) * size + index + 1 : index + 1
   }
 
-  // ------------------ renderer 注册 ------------------
-  registerBuiltInRenderers(getRendererManager())
-
+  // ------------------ renderer 获取 ------------------
   const renderer = computed(() => {
     const manager = getRendererManager()
     const allRenderers: Record<string, any> = {}
@@ -225,26 +202,18 @@
     if (!hook) return 0
 
     // 无行数据，用静态宽度
-    if (!col.__rows) return hook.optWidth.value
+    if (!props.data?.length) return hook.optWidth.value
     // 有行数据，取最大宽度
-    return hook.getMaxOptWidth(col.__rows)
+    return hook.getMaxOptWidth(props.data)
   }
 
   const getVisibleButtons = (col: ColumnConfig, row: any) => {
     const hook = getOperationColumnHook(col)
     if (!hook) return []
 
-    // 检查 operation 列是否应该显示
     const buttons = col.buttons || []
     if (!buttons.length) return []
 
-    const rows = col.__rows || []
-    if (!rows.length) {
-      // 无行数据，基于权限判断
-      return hook.getVisibleButtons(row)
-    }
-
-    // 有行数据，基于权限 + visible 判断
     return hook.getVisibleButtons(row)
   }
 
@@ -256,25 +225,24 @@
       const buttons = col.buttons || []
       if (!buttons.length) return false
 
-      const rows = col.__rows || []
-      if (!rows.length) return hook.hasAnyButton.value
+      if (!props.data?.length) return hook.hasAnyButton.value
 
-      return hook.hasAnyVisibleButton(col.__rows || [])
+      return hook.hasAnyVisibleButton(props.data)
     })
   }
 
-  // ----------------事件封装 ------------------
-  const handleCellChange = (row: any, key: string) => {
-    emit('cellChange', row, key)
+  // ------------------ 事件封装 ------------------
+  const handleCellChange = (row: any, col: ColumnConfig) => {
+    emit('cellChange', row, col)
   }
-  const handleCellBlur = (row: any, key: string) => {
-    emit('cellBlur', row, key)
+  const handleCellBlur = (row: any, col: ColumnConfig) => {
+    emit('cellBlur', row, col)
   }
-  const handleCellEnter = (row: any, key: string) => {
-    emit('cellEnter', row, key)
+  const handleCellEnter = (row: any, col: ColumnConfig) => {
+    emit('cellEnter', row, col)
   }
-  const handleCellClick = (row: any, col: any) => {
-    if(!col) return
+  const handleCellClick = (row: any, col: ColumnConfig) => {
+    if (!col) return
     emit('cellClick', row, col)
   }
 
