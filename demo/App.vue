@@ -20,6 +20,11 @@
         @cell-click="onCellClick"
       >
         <!-- 自定义复杂列插槽 -->
+        <template #status="{ row }">
+          <el-switch v-model="row.status" :active-value="1" :inactive-value="0" 
+            @change="() => handleStatusChange(row)" />
+        </template>
+        <!-- 自定义复杂列插槽 -->
         <template #attachments="{ row }">
           <div v-for="(item, index) in row.attachments" :key="index" class="attachment-item">
             <el-image
@@ -131,10 +136,23 @@ getRendererManager().register('status-badge', statusRenderer)
 
 <script setup lang="ts" name="APP">
 import { reactive, ref } from 'vue'
+import { ElMessageBox } from 'element-plus'
 import { SmartTable } from '../src/index'
 import { getRendererManager, createFunctionalRenderer, setSmartTableConfig } from '../src/index'
 import { h } from 'vue'
 import { Download } from '@element-plus/icons-vue'
+
+// 用户状态修改
+const handleStatusChange = (row: { status: number; userName: any; name: string }) => {
+  const text = row.status === 1 ? '启用' : '停用'
+  ElMessageBox.confirm(`确认要"${text}"${row.name}"用户吗？`)
+    .then(() => {
+      console.log('确认')
+    })
+    .catch(() => {
+      row.status = row.status === 1 ? 0 : 1
+    })
+}
 
 // ============ 自定义渲染器示例 ============
 const statusRenderer = createFunctionalRenderer((props) => {
@@ -251,6 +269,13 @@ const columns = ref([
       successText: '邮箱已复制到剪贴板',
       iconColor: '#409EFF'
     }
+  },
+  {
+    key: 'status',
+    label: '状态切换',
+    visible: true,
+    render: 'slot',
+    columnProps: { minWidth: 100, sortable: true }
   },
   {
     key: 'status',

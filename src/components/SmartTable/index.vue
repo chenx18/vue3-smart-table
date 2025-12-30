@@ -54,8 +54,8 @@
 
     <!-- ========== 普通数据列 ========== -->
     <el-table-column
-      v-for="col in dataColumns"
-      :key="col.key"
+      v-for="(col, idx) in dataColumns"
+      :key="`${col.key}-${idx}`"
       :label="col.label"
       align="center"
       v-bind="col.columnProps || {}"
@@ -63,7 +63,8 @@
       <template #default="scope">
         <!-- 父组件插槽优先 -->
         <template v-if="col.render === 'slot'">
-          <slot :name="col?.slot || col.key" v-bind="scope" />
+          <!-- 跳过 el-table 的预渲染（$index === -1 时是假数据） -->
+          <slot v-if="scope.$index >= 0" :name="col?.slot || col.key" v-bind="scope" />
         </template>
 
         <!-- renderer -->
@@ -87,11 +88,6 @@
         </span>
       </template>
     </el-table-column>
-
-    <!-- 动态插槽 -->
-    <template v-for="col in dataColumns" #[col.key]="slotProps">
-      <slot :name="col.key" v-bind="slotProps" />
-    </template>
   </el-table>
 </template>
 
@@ -129,9 +125,17 @@
   const { columns: cachedColumns } = useTableColumns(props.columns, {
     cacheKey: props.cacheKey ?? '',
   })
+  
+  // 标记是否已初始化，避免初始化时触发不必要的更新
+  let isInitialized = false
   watch(
     cachedColumns,
-    (val: ColumnConfig[]) => emit("update:columns", val),
+    (val: ColumnConfig[]) => {
+      if (isInitialized) {
+        emit("update:columns", val)
+      }
+      isInitialized = true
+    },
     { deep: true, immediate: true },
   )
 
