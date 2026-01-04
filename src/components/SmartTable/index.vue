@@ -53,6 +53,7 @@
       <!-- ========== 数据列 ========== -->
       <el-table-column
         v-else
+        :prop="col.key"
         :label="col.label"
         align="center"
         v-bind="col.columnProps || {}"
