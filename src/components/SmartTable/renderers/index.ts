@@ -18,6 +18,11 @@ import EditableSelect from './select.vue'
 const input = wrapSFCComponent(EditableInput)
 const inputNumber = wrapSFCComponent(EditableNumber)
 const select = wrapSFCComponent(EditableSelect)
+const normalizeCssSize = (size: string | number | undefined, fallback: string) => {
+  if (size === undefined || size === null || size === '') return fallback
+  return typeof size === 'number' ? size + 'px' : size
+}
+
 
 /**
  * 提取 props 中的事件（on 开头的属性）
@@ -192,8 +197,8 @@ const img = createFunctionalRenderer((props) => {
   }
 
   const defaultStyle = {
-    width: width || '80px',
-    height: height || '80px',
+    width: normalizeCssSize(width, '80px'),
+    height: normalizeCssSize(height, '80px'),
     marginRight: imageList.length > 1 ? '4px' : '0',
     ...(typeof style === 'object' ? style : {})
   }

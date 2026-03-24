@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.3] - 2026-03-24
+
+### Fixed
+- **img 宽高参数生效** - 修复 img 渲染器在传入数字类型 width / height 时未自动补全 CSS 单位，导致尺寸配置不生效的问题
+
 ## [2.1.1] - 2025-12-30
 
 ### Fixed
